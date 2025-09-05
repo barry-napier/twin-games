@@ -189,6 +189,33 @@
       [data-theme="sarah"] .speed-controls button {
         background: linear-gradient(135deg, #ff69b4, #da70d6);
       }
+      
+      .level-indicator {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: var(--panel);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--text);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        z-index: 90;
+        display: none;
+      }
+      
+      [data-theme="finn"] .level-indicator {
+        background: rgba(10, 14, 39, 0.95);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+      }
+      
+      [data-theme="sarah"] .level-indicator {
+        background: rgba(255, 240, 245, 0.95);
+        color: #ff1493;
+      }
       .controls .row {
         display: contents;
       }
@@ -514,10 +541,8 @@
       <button class="diff-btn hard" id="hardBtn" title="Hard - 20x20 maze">🔴 Hard</button>
     </div>
     
-    <button id="startBtn" title="Tap to allow motion sensors on iPad/iPhone" style="display: none;">
-      ▶️ Start Game (Enable Tilt)
-    </button>
-
+    <div class="level-indicator" id="levelIndicator">Level <span id="levelDisplay">1</span></div>
+    
     <button class="settings-toggle" id="settingsToggle" title="Settings">⚙️</button>
     
     <div class="speed-controls" id="speedControls">
@@ -568,7 +593,8 @@
       // Elements
       const marble = document.getElementById("marble");
       const goal = document.getElementById("goal");
-      const startBtn = document.getElementById("startBtn");
+      const levelIndicator = document.getElementById("levelIndicator");
+      const levelDisplay = document.getElementById("levelDisplay");
       const invertXEl = document.getElementById("invertX");
       const invertYEl = document.getElementById("invertY");
       const speedEl = document.getElementById("speed");
@@ -979,6 +1005,9 @@
           yVal.textContent = y.toFixed(1);
           levelVal.textContent = level;
         }
+        
+        // Update level display
+        levelDisplay.textContent = level;
 
         // Goal check
         const marbleRect = marble.getBoundingClientRect();
@@ -990,6 +1019,7 @@
           marbleRect.bottom > goalRect.top
         ) {
           level++;
+          levelDisplay.textContent = level;
           celebrateWithFireworks();
           setTimeout(() => {
             generateNewMaze();
@@ -1086,9 +1116,9 @@
         return true;
       }
 
-      function startGame() {
-        startBtn.style.display = "none";
+      async function startGame() {
         settingsToggle.style.display = "flex";
+        levelIndicator.style.display = "block";
 
         // Generate the first maze
         level = 1;
@@ -1098,12 +1128,11 @@
         hint.textContent =
           `Level 1: Avoid ${bombCount} bombs and reach the green goal!`;
 
-        requestSensorPermissions().then((granted) => {
-          if (granted !== false) {
-            useTilt = true;
-            window.addEventListener("deviceorientation", handleOrientation);
-          }
-        });
+        const granted = await requestSensorPermissions();
+        if (granted !== false) {
+          useTilt = true;
+          window.addEventListener("deviceorientation", handleOrientation);
+        }
 
         // Reset marble position for new maze
         resetMarblePosition();
@@ -1112,8 +1141,6 @@
           tick();
         }
       }
-
-      startBtn.addEventListener("click", startGame);
       
       // Theme selection
       sarahBtn.addEventListener("click", () => {
@@ -1130,26 +1157,26 @@
         hint.textContent = "Finn Mode activated! 🤖 Choose your difficulty level!";
       });
       
-      // Difficulty selection
-      easyBtn.addEventListener("click", () => {
+      // Difficulty selection - starts game immediately
+      easyBtn.addEventListener("click", async () => {
         setDifficulty("easy");
         difficultySelector.style.display = "none";
-        startBtn.style.display = "inline-flex";
-        hint.textContent = "Easy mode selected! 10x10 maze. Tap 'Start Game' to begin!";
+        hint.textContent = "Easy mode! 10x10 maze. Tilt to move!";
+        await startGame();
       });
       
-      mediumBtn.addEventListener("click", () => {
+      mediumBtn.addEventListener("click", async () => {
         setDifficulty("medium");
         difficultySelector.style.display = "none";
-        startBtn.style.display = "inline-flex";
-        hint.textContent = "Medium mode selected! 15x15 maze. Tap 'Start Game' to begin!";
+        hint.textContent = "Medium mode! 15x15 maze. Tilt to move!";
+        await startGame();
       });
       
-      hardBtn.addEventListener("click", () => {
+      hardBtn.addEventListener("click", async () => {
         setDifficulty("hard");
         difficultySelector.style.display = "none";
-        startBtn.style.display = "inline-flex";
-        hint.textContent = "Hard mode selected! 20x20 maze. Tap 'Start Game' to begin!";
+        hint.textContent = "Hard mode! 20x20 maze. Tilt to move!";
+        await startGame();
       });
       
       // Settings toggle
