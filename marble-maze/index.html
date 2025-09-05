@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
+    <title>Colorful Marble Maze</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+      :root {
+        --bg-1: #7f5af0;
+        --bg-2: #2cb67d;
+        --accent: #ff8906;
+        --wall: #ef4565;
+        --goal: #2cb67d;
+        --panel: rgba(255, 255, 255, 0.85);
+        --text: #111;
+      }
+      
+      [data-theme="sarah"] {
+        --bg-1: #ff6ec7;
+        --bg-2: #c77dff;
+        --accent: #ff69b4;
+        --wall: #ff1493;
+        --goal: #da70d6;
+        --panel: rgba(255, 240, 245, 0.9);
+        --text: #4a0e4e;
+        --marble-1: #ffc0cb;
+        --marble-2: #ff69b4;
+        --marble-3: #ff1493;
+      }
+      
+      [data-theme="finn"] {
+        --bg-1: #0a0e27;
+        --bg-2: #1a1a3e;
+        --accent: #00ffff;
+        --wall: #1e3a5f;
+        --goal: #00ff00;
+        --panel: rgba(10, 14, 39, 0.9);
+        --text: #00ffff;
+        --marble-1: #00ffff;
+        --marble-2: #0080ff;
+        --marble-3: #0040ff;
+      }
+      
+      [data-theme="default"] {
+        --marble-1: #fffffe;
+        --marble-2: #3da9fc;
+        --marble-3: #1856c9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        gap: 16px;
+        touch-action: none;
+        overflow: hidden;
+      }
+
+      .controls {
+        width: min(92vmin, 720px);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px 12px;
+        background: var(--panel);
+        padding: 12px;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        align-items: center;
+      }
+      .controls .row {
+        display: contents;
+      }
+      .controls label {
+        font-size: 14px;
+        color: var(--text);
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+      .controls input[type="range"] {
+        width: 100%;
+      }
+      .controls button,
+      #startBtn {
+        background: var(--accent);
+        color: #fff;
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        transition: transform 0.12s ease;
+        touch-action: manipulation;
+      }
+      .controls button:active,
+      #startBtn:active {
+        transform: translateY(1px) scale(0.99);
+      }
+      .controls .split {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: flex-end;
+        grid-column: span 3;
+      }
+
+      #startBtn {
+        font-size: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .maze {
+        position: relative;
+        width: min(92vmin, 720px);
+        aspect-ratio: 1/1;
+        background: #fffffe;
+        border: 10px solid var(--accent);
+        border-radius: 18px;
+        display: grid;
+        grid-template-columns: repeat(var(--maze-size, 10), 1fr);
+        grid-template-rows: repeat(var(--maze-size, 10), 1fr);
+        gap: 0;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+      }
+      
+      .maze[data-difficulty="easy"] {
+        --maze-size: 10;
+        --marble-size: 8;
+      }
+      
+      .maze[data-difficulty="medium"] {
+        --maze-size: 15;
+        --marble-size: 5.5;
+      }
+      
+      .maze[data-difficulty="hard"] {
+        --maze-size: 20;
+        --marble-size: 4;
+      }
+      
+      [data-theme="finn"] .maze {
+        background: linear-gradient(135deg, #0a0818 0%, #1a1a3e 50%, #0f172a 100%);
+        border-color: #00ffff;
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), 0 16px 36px rgba(0, 0, 0, 0.5);
+      }
+      
+      [data-theme="sarah"] .maze {
+        background: linear-gradient(135deg, #ffe0f0 0%, #fff5f9 50%, #fce4ec 100%);
+      }
+
+      .wall {
+        background: var(--wall);
+        border-radius: 4px;
+        margin: 2px;
+      }
+
+      .goal {
+        background: var(--goal);
+        border-radius: 50%;
+        margin: 2px;
+        box-shadow: 0 0 20px rgba(44, 182, 125, 0.5);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      
+      .bomb {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: calc(min(92vmin, 720px) / var(--maze-size, 10) * 0.5);
+        animation: bomb-pulse 1.5s ease-in-out infinite;
+        z-index: 5;
+      }
+      
+      @keyframes bomb-pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+      
+      [data-theme="finn"] .bomb {
+        filter: hue-rotate(180deg) saturate(2);
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+      }
+      
+      [data-theme="sarah"] .bomb {
+        filter: hue-rotate(300deg);
+      }
+      
+      @keyframes hit-flash {
+        0% {
+          background: rgba(255, 0, 0, 0.5);
+        }
+        100% {
+          background: transparent;
+        }
+      }
+      
+      .maze.bomb-hit {
+        animation: hit-flash 0.5s ease-out;
+      }
+
+      .marble {
+        position: absolute;
+        width: calc(var(--marble-size, 8) * 1%);
+        height: calc(var(--marble-size, 8) * 1%);
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 30% 30%,
+          var(--marble-1, #fffffe),
+          var(--marble-2, #3da9fc) 60%,
+          var(--marble-3, #1856c9) 100%
+        );
+        left: 2%;
+        top: 2%;
+        pointer-events: none;
+        box-shadow: inset 0 4px 10px rgba(255, 255, 255, 0.8),
+          0 6px 18px rgba(0, 0, 0, 0.25);
+        z-index: 10;
+        transition: none;
+      }
+      
+      [data-theme="finn"] .marble {
+        box-shadow: inset 0 4px 10px rgba(0, 255, 255, 0.8),
+          0 0 20px rgba(0, 255, 255, 0.5),
+          0 0 40px rgba(0, 255, 255, 0.3);
+      }
+      
+      [data-theme="finn"] .goal {
+        animation: pulse 2s ease-in-out infinite, glow 1s ease-in-out infinite alternate;
+      }
+      
+      @keyframes glow {
+        from {
+          box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+        to {
+          box-shadow: 0 0 30px rgba(0, 255, 0, 0.8), 0 0 50px rgba(0, 255, 0, 0.4);
+        }
+      }
+      
+      .theme-selector,
+      .difficulty-selector {
+        width: min(92vmin, 720px);
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        align-items: center;
+        background: var(--panel);
+        padding: 16px;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        flex-wrap: wrap;
+      }
+      
+      .theme-btn,
+      .diff-btn {
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: 700;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+      }
+      
+      .theme-btn:active,
+      .diff-btn:active {
+        transform: translateY(1px) scale(0.99);
+      }
+      
+      .diff-btn.easy {
+        background: linear-gradient(135deg, #4caf50, #8bc34a);
+        color: white;
+      }
+      
+      .diff-btn.medium {
+        background: linear-gradient(135deg, #ff9800, #ffc107);
+        color: white;
+      }
+      
+      .diff-btn.hard {
+        background: linear-gradient(135deg, #f44336, #e91e63);
+        color: white;
+      }
+      
+      .theme-btn.sarah {
+        background: linear-gradient(135deg, #ff69b4, #da70d6);
+        color: white;
+      }
+      
+      .theme-btn.finn {
+        background: linear-gradient(135deg, #0a0e27, #00ffff);
+        color: #00ffff;
+        border: 2px solid #00ffff;
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      }
+      
+      [data-theme="finn"] .controls,
+      [data-theme="finn"] .hint,
+      [data-theme="finn"] .theme-selector,
+      [data-theme="finn"] .difficulty-selector {
+        background: rgba(10, 14, 39, 0.95);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+      }
+      
+      [data-theme="finn"] .controls label {
+        color: #00ffff;
+      }
+      
+      [data-theme="finn"] .controls button,
+      [data-theme="finn"] #startBtn {
+        background: linear-gradient(135deg, #00ffff, #0080ff);
+        color: #0a0e27;
+        text-shadow: none;
+        border: 1px solid #00ffff;
+      }
+      
+      [data-theme="sarah"] .controls button,
+      [data-theme="sarah"] #startBtn {
+        background: linear-gradient(135deg, #ff69b4, #da70d6);
+      }
+
+      .hint {
+        font-size: 13px;
+        color: #000;
+        opacity: 0.75;
+        text-align: center;
+        background: var(--panel);
+        padding: 8px 12px;
+        border-radius: 12px;
+        max-width: min(92vmin, 720px);
+      }
+
+      .debug {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 8px;
+        font-size: 12px;
+        border-radius: 8px;
+        display: none;
+      }
+      .debug.show {
+        display: block;
+      }
+
+      @media (max-width: 520px) {
+        .controls {
+          grid-template-columns: 1fr 1fr;
+        }
+        .controls .split {
+          grid-column: 1 / -1;
+          justify-content: space-between;
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="default">
+    <div class="theme-selector" id="themeSelector">
+      <div style="font-weight: 700; font-size: 20px; width: 100%; text-align: center;">Choose Your Mode:</div>
+      <button class="theme-btn sarah" id="sarahBtn" title="Sarah Mode - Pink & Purple Theme">🌸 Sarah Mode</button>
+      <button class="theme-btn finn" id="finnBtn" title="Finn Mode - Cyberpunk Theme">🤖 Finn Mode</button>
+    </div>
+    
+    <div class="difficulty-selector" id="difficultySelector" style="display: none;">
+      <div style="font-weight: 700; font-size: 20px; width: 100%; text-align: center;">Choose Difficulty:</div>
+      <button class="diff-btn easy" id="easyBtn" title="Easy - 10x10 maze">🟢 Easy</button>
+      <button class="diff-btn medium" id="mediumBtn" title="Medium - 15x15 maze">🟡 Medium</button>
+      <button class="diff-btn hard" id="hardBtn" title="Hard - 20x20 maze">🔴 Hard</button>
+    </div>
+    
+    <button id="startBtn" title="Tap to allow motion sensors on iPad/iPhone" style="display: none;">
+      ▶️ Start Game (Enable Tilt)
+    </button>
+
+    <div class="controls" id="controls" style="display: none">
+      <div class="row">
+        <label for="speed">Speed</label>
+        <input
+          id="speed"
+          type="range"
+          min="0.1"
+          max="2.0"
+          step="0.1"
+          value="0.5"
+        />
+        <div style="text-align: right"><span id="speedVal">0.5</span>x</div>
+      </div>
+
+      <div class="row">
+        <label><input type="checkbox" id="invertX" /> Invert X</label>
+        <label><input type="checkbox" id="invertY" /> Invert Y</label>
+        <div class="split">
+          <label><input type="checkbox" id="showDebug" /> Debug</label>
+          <button id="newMazeBtn" title="Generate new maze">🎲 New Maze</button>
+          <button id="resetBtn" title="Reset marble">↻ Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="maze" id="maze" data-difficulty="easy" aria-label="Marble Maze Game">
+      <!-- Maze will be generated dynamically -->
+      <div class="goal" id="goal"></div>
+      <div class="marble" id="marble" aria-label="Marble"></div>
+    </div>
+
+    <div class="hint" id="hint">
+      Use arrow keys on desktop or tilt your device after tapping "Start Game".
+    </div>
+
+    <div class="debug" id="debug">
+      Beta: <span id="betaVal">0</span>°<br />
+      Gamma: <span id="gammaVal">0</span>°<br />
+      X: <span id="xVal">0</span>%<br />
+      Y: <span id="yVal">0</span>%<br />
+      Level: <span id="levelVal">1</span>
+    </div>
+
+    <script>
+      // Elements
+      const marble = document.getElementById("marble");
+      const goal = document.getElementById("goal");
+      const startBtn = document.getElementById("startBtn");
+      const controls = document.getElementById("controls");
+      const invertXEl = document.getElementById("invertX");
+      const invertYEl = document.getElementById("invertY");
+      const speedEl = document.getElementById("speed");
+      const speedValEl = document.getElementById("speedVal");
+      const resetBtn = document.getElementById("resetBtn");
+      const newMazeBtn = document.getElementById("newMazeBtn");
+      const hint = document.getElementById("hint");
+      const maze = document.getElementById("maze");
+      const debug = document.getElementById("debug");
+      const showDebugEl = document.getElementById("showDebug");
+      const betaVal = document.getElementById("betaVal");
+      const gammaVal = document.getElementById("gammaVal");
+      const xVal = document.getElementById("xVal");
+      const yVal = document.getElementById("yVal");
+      const levelVal = document.getElementById("levelVal");
+      const themeSelector = document.getElementById("themeSelector");
+      const sarahBtn = document.getElementById("sarahBtn");
+      const finnBtn = document.getElementById("finnBtn");
+      const difficultySelector = document.getElementById("difficultySelector");
+      const easyBtn = document.getElementById("easyBtn");
+      const mediumBtn = document.getElementById("mediumBtn");
+      const hardBtn = document.getElementById("hardBtn");
+
+      // Game variables
+      let walls = [];
+      let bombs = [];
+      let mazeSize = 10; // Will change based on difficulty
+      let marbleSize = 8; // Will change based on difficulty
+      let level = 1;
+      let difficulty = "easy";
+
+      // Marble position in %
+      let x = 2;
+      let y = 2;
+
+      // Tilt data & settings
+      let speedScale = parseFloat(speedEl.value);
+      let useTilt = false;
+      let animationId = null;
+
+      // Velocities for smooth movement
+      let vx = 0,
+        vy = 0;
+      const friction = 0.85;
+      const maxSpeed = 2;
+
+      // Update maze settings based on difficulty
+      function setDifficulty(diff) {
+        difficulty = diff;
+        maze.setAttribute("data-difficulty", diff);
+        
+        if (diff === "easy") {
+          mazeSize = 10;
+          marbleSize = 8;
+        } else if (diff === "medium") {
+          mazeSize = 15;
+          marbleSize = 5.5;
+        } else if (diff === "hard") {
+          mazeSize = 20;
+          marbleSize = 4;
+        }
+        
+        // Update goal position
+        goal.style.gridColumn = mazeSize;
+        goal.style.gridRow = mazeSize;
+      }
+
+      // Generate a random maze using recursive backtracking
+      function generateMaze() {
+        // Clear existing walls and bombs
+        const existingWalls = maze.querySelectorAll(".wall");
+        existingWalls.forEach((w) => w.remove());
+        const existingBombs = maze.querySelectorAll(".bomb");
+        existingBombs.forEach((b) => b.remove());
+
+        // Create a 2D array for the maze
+        const grid = Array(mazeSize)
+          .fill()
+          .map(() => Array(mazeSize).fill(true));
+        const visited = Array(mazeSize)
+          .fill()
+          .map(() => Array(mazeSize).fill(false));
+
+        // Stack for backtracking
+        const stack = [];
+
+        // Start position
+        const startX = 0;
+        const startY = 0;
+        grid[startY][startX] = false;
+        visited[startY][startX] = true;
+        stack.push({ x: startX, y: startY });
+
+        // Directions: right, down, left, up
+        const directions = [
+          { dx: 2, dy: 0 },
+          { dx: 0, dy: 2 },
+          { dx: -2, dy: 0 },
+          { dx: 0, dy: -2 },
+        ];
+
+        // Generate maze using recursive backtracking
+        while (stack.length > 0) {
+          const current = stack[stack.length - 1];
+
+          // Find unvisited neighbors
+          const neighbors = [];
+          for (const dir of directions) {
+            const nx = current.x + dir.dx;
+            const ny = current.y + dir.dy;
+
+            if (
+              nx >= 0 &&
+              nx < mazeSize &&
+              ny >= 0 &&
+              ny < mazeSize &&
+              !visited[ny][nx]
+            ) {
+              neighbors.push({ x: nx, y: ny, dx: dir.dx, dy: dir.dy });
+            }
+          }
+
+          if (neighbors.length > 0) {
+            // Choose random neighbor
+            const next =
+              neighbors[Math.floor(Math.random() * neighbors.length)];
+
+            // Remove wall between current and next
+            const wallX = current.x + next.dx / 2;
+            const wallY = current.y + next.dy / 2;
+            grid[wallY][wallX] = false;
+            grid[next.y][next.x] = false;
+
+            visited[next.y][next.x] = true;
+            stack.push(next);
+          } else {
+            // Backtrack
+            stack.pop();
+          }
+        }
+
+        // Clear path to goal
+        grid[mazeSize - 1][mazeSize - 1] = false;
+        grid[mazeSize - 2][mazeSize - 1] = false;
+        grid[mazeSize - 1][mazeSize - 2] = false;
+
+        // Add some random openings for variety (based on difficulty/level)
+        const numOpenings = Math.max(5, 20 - level);
+        for (let i = 0; i < numOpenings; i++) {
+          const rx = Math.floor(Math.random() * mazeSize);
+          const ry = Math.floor(Math.random() * mazeSize);
+          grid[ry][rx] = false;
+        }
+
+        // Convert grid to wall elements
+        for (let y = 0; y < mazeSize; y++) {
+          for (let x = 0; x < mazeSize; x++) {
+            if (grid[y][x]) {
+              const wall = document.createElement("div");
+              wall.className = "wall";
+              wall.style.gridColumn = x + 1;
+              wall.style.gridRow = y + 1;
+              maze.insertBefore(wall, goal);
+            }
+          }
+        }
+
+        // Add bombs based on difficulty
+        const numBombs = difficulty === "easy" ? 3 : difficulty === "medium" ? 5 : 8;
+        const bombPositions = new Set();
+        
+        // Generate random bomb positions (avoiding start and goal)
+        while (bombPositions.size < numBombs) {
+          const bx = Math.floor(Math.random() * mazeSize);
+          const by = Math.floor(Math.random() * mazeSize);
+          
+          // Avoid placing bombs at start (0,0) or goal position
+          if ((bx === 0 && by === 0) || (bx === mazeSize - 1 && by === mazeSize - 1)) {
+            continue;
+          }
+          
+          // Avoid placing bombs on walls
+          if (!grid[by][bx]) {
+            const key = `${bx},${by}`;
+            if (!bombPositions.has(key)) {
+              bombPositions.add(key);
+              const bomb = document.createElement("div");
+              bomb.className = "bomb";
+              bomb.style.gridColumn = bx + 1;
+              bomb.style.gridRow = by + 1;
+              bomb.textContent = "💣";
+              maze.insertBefore(bomb, goal);
+            }
+          }
+        }
+        
+        // Update walls and bombs arrays for collision detection
+        walls = [...document.querySelectorAll(".wall")];
+        bombs = [...document.querySelectorAll(".bomb")];
+      }
+
+      // Get wall positions as percentages
+      function getWallBounds() {
+        const bounds = [];
+        const mazeRect = maze.getBoundingClientRect();
+        walls.forEach((wall) => {
+          const rect = wall.getBoundingClientRect();
+          bounds.push({
+            left: ((rect.left - mazeRect.left) / mazeRect.width) * 100,
+            right: ((rect.right - mazeRect.left) / mazeRect.width) * 100,
+            top: ((rect.top - mazeRect.top) / mazeRect.height) * 100,
+            bottom: ((rect.bottom - mazeRect.top) / mazeRect.height) * 100,
+          });
+        });
+        return bounds;
+      }
+
+      // Check collision between marble and walls
+      function checkCollision(newX, newY) {
+        const wallBounds = getWallBounds();
+        const marbleLeft = newX;
+        const marbleRight = newX + marbleSize;
+        const marbleTop = newY;
+        const marbleBottom = newY + marbleSize;
+
+        for (let wall of wallBounds) {
+          if (
+            marbleLeft < wall.right &&
+            marbleRight > wall.left &&
+            marbleTop < wall.bottom &&
+            marbleBottom > wall.top
+          ) {
+            return true; // Collision detected
+          }
+        }
+        return false;
+      }
+
+      function handleOrientation(e) {
+        if (!useTilt) return;
+
+        // Get raw values
+        const beta = e.beta || 0; // Front-back tilt (-180 to 180)
+        const gamma = e.gamma || 0; // Left-right tilt (-90 to 90)
+
+        // Debug display
+        if (showDebugEl.checked) {
+          betaVal.textContent = beta.toFixed(1);
+          gammaVal.textContent = gamma.toFixed(1);
+        }
+
+        // Adjust for different orientations
+        let dx, dy;
+
+        const isLandscape = window.innerWidth > window.innerHeight;
+
+        if (isLandscape) {
+          // Landscape mode
+          dx = gamma / 45; // Left-right
+          dy = beta / 45; // Up-down
+        } else {
+          // Portrait mode
+          dx = gamma / 45;
+          dy = beta / 45;
+        }
+
+        // Apply inversions if needed
+        if (invertXEl.checked) dx = -dx;
+        if (invertYEl.checked) dy = -dy;
+
+        // Apply speed scaling
+        dx *= speedScale * 0.5;
+        dy *= speedScale * 0.5;
+
+        // Update velocities with acceleration
+        vx += dx;
+        vy += dy;
+
+        // Clamp max speed
+        vx = Math.max(-maxSpeed, Math.min(maxSpeed, vx));
+        vy = Math.max(-maxSpeed, Math.min(maxSpeed, vy));
+      }
+
+      // Check collision with bombs
+      function checkBombCollision() {
+        const marbleRect = marble.getBoundingClientRect();
+        
+        for (let i = 0; i < bombs.length; i++) {
+          const bomb = bombs[i];
+          const bombRect = bomb.getBoundingClientRect();
+          if (
+            marbleRect.left < bombRect.right &&
+            marbleRect.right > bombRect.left &&
+            marbleRect.top < bombRect.bottom &&
+            marbleRect.bottom > bombRect.top
+          ) {
+            // Remove the bomb from DOM and array
+            bomb.remove();
+            bombs.splice(i, 1);
+            return true;
+          }
+        }
+        return false;
+      }
+
+      function tick() {
+        // Apply friction
+        vx *= friction;
+        vy *= friction;
+
+        // Calculate new position
+        let newX = x + vx;
+        let newY = y + vy;
+
+        // Check boundaries
+        newX = Math.max(0, Math.min(92, newX));
+        newY = Math.max(0, Math.min(92, newY));
+
+        // Check wall collisions
+        if (!checkCollision(newX, y)) {
+          x = newX;
+        } else {
+          vx = -vx * 0.5; // Bounce back
+        }
+
+        if (!checkCollision(x, newY)) {
+          y = newY;
+        } else {
+          vy = -vy * 0.5; // Bounce back
+        }
+
+        // Update marble position
+        marble.style.left = x + "%";
+        marble.style.top = y + "%";
+        
+        // Check bomb collision
+        if (checkBombCollision()) {
+          // Flash effect
+          maze.classList.add("bomb-hit");
+          setTimeout(() => maze.classList.remove("bomb-hit"), 500);
+          
+          // Reset position
+          hint.textContent = "💥 Bomb hit! Back to start!";
+          resetMarblePosition();
+          
+          // Clear hint after 2 seconds
+          setTimeout(() => {
+            hint.textContent = `Level ${level}: Avoid the bombs! Reach the green goal!`;
+          }, 2000);
+        }
+
+        // Debug display
+        if (showDebugEl.checked) {
+          xVal.textContent = x.toFixed(1);
+          yVal.textContent = y.toFixed(1);
+          levelVal.textContent = level;
+        }
+
+        // Goal check
+        const marbleRect = marble.getBoundingClientRect();
+        const goalRect = goal.getBoundingClientRect();
+        if (
+          marbleRect.left < goalRect.right &&
+          marbleRect.right > goalRect.left &&
+          marbleRect.top < goalRect.bottom &&
+          marbleRect.bottom > goalRect.top
+        ) {
+          level++;
+          celebrateWithFireworks();
+          setTimeout(() => {
+            generateNewMaze();
+          }, 3000);
+        }
+
+        animationId = requestAnimationFrame(tick);
+      }
+
+      function resetMarblePosition() {
+        x = 2;
+        y = 2;
+        vx = 0;
+        vy = 0;
+        marble.style.left = x + "%";
+        marble.style.top = y + "%";
+      }
+
+      function generateNewMaze() {
+        generateMaze();
+        resetMarblePosition();
+        const bombCount = difficulty === "easy" ? 3 : difficulty === "medium" ? 5 : 8;
+        hint.textContent = `Level ${level}: New maze with ${bombCount} bombs! Avoid them and reach the goal!`;
+        setTimeout(() => {
+          hint.textContent = "Tilt to roll the marble. Avoid bombs 💣 and reach the green goal!";
+        }, 2500);
+      }
+
+      // Desktop keyboard controls
+      const keySpeed = 0.8;
+      let keys = {};
+
+      document.addEventListener("keydown", (e) => {
+        keys[e.key] = true;
+
+        if (keys["ArrowUp"]) vy -= keySpeed * speedScale;
+        if (keys["ArrowDown"]) vy += keySpeed * speedScale;
+        if (keys["ArrowLeft"]) vx -= keySpeed * speedScale;
+        if (keys["ArrowRight"]) vx += keySpeed * speedScale;
+
+        // Clamp velocities
+        vx = Math.max(-maxSpeed, Math.min(maxSpeed, vx));
+        vy = Math.max(-maxSpeed, Math.min(maxSpeed, vy));
+      });
+
+      document.addEventListener("keyup", (e) => {
+        keys[e.key] = false;
+      });
+
+      // UI controls
+      speedEl.addEventListener("input", () => {
+        speedScale = parseFloat(speedEl.value);
+        speedValEl.textContent = speedScale.toFixed(1);
+      });
+
+      showDebugEl.addEventListener("change", () => {
+        debug.classList.toggle("show", showDebugEl.checked);
+      });
+
+      resetBtn?.addEventListener("click", resetMarblePosition);
+      newMazeBtn?.addEventListener("click", generateNewMaze);
+
+      // Request permissions for iOS
+      async function requestSensorPermissions() {
+        try {
+          if (
+            typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function"
+          ) {
+            const response = await DeviceOrientationEvent.requestPermission();
+            if (response !== "granted") {
+              alert("Motion sensor permission denied. Use arrow keys instead.");
+              return false;
+            }
+          }
+        } catch (e) {
+          console.log("DeviceOrientation permission request failed:", e);
+        }
+
+        try {
+          if (
+            typeof DeviceMotionEvent !== "undefined" &&
+            typeof DeviceMotionEvent.requestPermission === "function"
+          ) {
+            const response = await DeviceMotionEvent.requestPermission();
+            if (response !== "granted") {
+              console.log("DeviceMotion permission denied");
+            }
+          }
+        } catch (e) {
+          console.log("DeviceMotion permission request failed:", e);
+        }
+
+        return true;
+      }
+
+      function startGame() {
+        startBtn.style.display = "none";
+        controls.style.display = "grid";
+
+        // Generate the first maze
+        level = 1;
+        generateMaze();
+
+        const bombCount = difficulty === "easy" ? 3 : difficulty === "medium" ? 5 : 8;
+        hint.textContent =
+          `Level 1: Avoid ${bombCount} bombs and reach the green goal!`;
+
+        requestSensorPermissions().then((granted) => {
+          if (granted !== false) {
+            useTilt = true;
+            window.addEventListener("deviceorientation", handleOrientation);
+          }
+        });
+
+        // Reset marble position for new maze
+        resetMarblePosition();
+
+        if (!animationId) {
+          tick();
+        }
+      }
+
+      startBtn.addEventListener("click", startGame);
+      
+      // Theme selection
+      sarahBtn.addEventListener("click", () => {
+        document.body.setAttribute("data-theme", "sarah");
+        themeSelector.style.display = "none";
+        difficultySelector.style.display = "flex";
+        hint.textContent = "Sarah Mode activated! 🌸 Choose your difficulty level!";
+      });
+      
+      finnBtn.addEventListener("click", () => {
+        document.body.setAttribute("data-theme", "finn");
+        themeSelector.style.display = "none";
+        difficultySelector.style.display = "flex";
+        hint.textContent = "Finn Mode activated! 🤖 Choose your difficulty level!";
+      });
+      
+      // Difficulty selection
+      easyBtn.addEventListener("click", () => {
+        setDifficulty("easy");
+        difficultySelector.style.display = "none";
+        startBtn.style.display = "inline-flex";
+        hint.textContent = "Easy mode selected! 10x10 maze. Tap 'Start Game' to begin!";
+      });
+      
+      mediumBtn.addEventListener("click", () => {
+        setDifficulty("medium");
+        difficultySelector.style.display = "none";
+        startBtn.style.display = "inline-flex";
+        hint.textContent = "Medium mode selected! 15x15 maze. Tap 'Start Game' to begin!";
+      });
+      
+      hardBtn.addEventListener("click", () => {
+        setDifficulty("hard");
+        difficultySelector.style.display = "none";
+        startBtn.style.display = "inline-flex";
+        hint.textContent = "Hard mode selected! 20x20 maze. Tap 'Start Game' to begin!";
+      });
+      
+      // Confetti celebration function
+      function celebrateWithFireworks() {
+        const theme = document.body.getAttribute("data-theme");
+        let colors;
+        
+        if (theme === "sarah") {
+          colors = ["#ff69b4", "#da70d6", "#ff1493", "#ffc0cb", "#ffb6c1"];
+        } else if (theme === "finn") {
+          colors = ["#00ffff", "#00ff00", "#0080ff", "#1e3a5f", "#003d5c"];
+        } else {
+          colors = ["#7f5af0", "#2cb67d", "#ff8906", "#3da9fc", "#ef4565"];
+        }
+        
+        hint.textContent = `🎉 Level ${level - 1} complete! Starting level ${level}...`;
+        
+        // Simple celebration burst
+        const duration = 1.5 * 1000;
+        const animationEnd = Date.now() + duration;
+        
+        // Single firework burst from center
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          startVelocity: 35,
+          origin: { y: 0.5 },
+          colors: colors
+        });
+        
+        // Small side bursts after a delay
+        setTimeout(() => {
+          confetti({
+            particleCount: 25,
+            angle: 60,
+            spread: 45,
+            startVelocity: 25,
+            origin: { x: 0.25, y: 0.5 },
+            colors: colors
+          });
+          confetti({
+            particleCount: 25,
+            angle: 120,
+            spread: 45,
+            startVelocity: 25,
+            origin: { x: 0.75, y: 0.5 },
+            colors: colors
+          });
+        }, 200);
+      }
+    </script>
+  </body>
+</html>
