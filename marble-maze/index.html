@@ -78,6 +78,69 @@
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
         align-items: center;
       }
+      
+      .settings-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+      }
+      
+      .settings-toggle:hover {
+        transform: rotate(90deg);
+      }
+      
+      .settings-toggle.active {
+        transform: rotate(180deg);
+      }
+      
+      .speed-controls {
+        display: none;
+        background: var(--panel);
+        padding: 12px;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        width: 250px;
+        z-index: 99;
+      }
+      
+      .speed-controls.show {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      
+      [data-theme="finn"] .settings-toggle {
+        background: linear-gradient(135deg, #00ffff, #0080ff);
+        color: #0a0e27;
+      }
+      
+      [data-theme="sarah"] .settings-toggle {
+        background: linear-gradient(135deg, #ff69b4, #da70d6);
+      }
+      
+      [data-theme="finn"] .speed-controls {
+        background: rgba(10, 14, 39, 0.95);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+      }
       .controls .row {
         display: contents;
       }
@@ -407,20 +470,22 @@
       ▶️ Start Game (Enable Tilt)
     </button>
 
+    <button class="settings-toggle" id="settingsToggle" title="Settings">⚙️</button>
+    
+    <div class="speed-controls" id="speedControls">
+      <label for="speed">Speed</label>
+      <input
+        id="speed"
+        type="range"
+        min="0.1"
+        max="2.0"
+        step="0.1"
+        value="0.5"
+      />
+      <div style="text-align: right"><span id="speedVal">0.5</span>x</div>
+    </div>
+    
     <div class="controls" id="controls" style="display: none">
-      <div class="row">
-        <label for="speed">Speed</label>
-        <input
-          id="speed"
-          type="range"
-          min="0.1"
-          max="2.0"
-          step="0.1"
-          value="0.5"
-        />
-        <div style="text-align: right"><span id="speedVal">0.5</span>x</div>
-      </div>
-
       <div class="row">
         <label><input type="checkbox" id="invertX" /> Invert X</label>
         <label><input type="checkbox" id="invertY" /> Invert Y</label>
@@ -478,6 +543,8 @@
       const easyBtn = document.getElementById("easyBtn");
       const mediumBtn = document.getElementById("mediumBtn");
       const hardBtn = document.getElementById("hardBtn");
+      const settingsToggle = document.getElementById("settingsToggle");
+      const speedControls = document.getElementById("speedControls");
 
       // Game variables
       let walls = [];
@@ -739,6 +806,53 @@
         vy = Math.max(-maxSpeed, Math.min(maxSpeed, vy));
       }
 
+      // Randomize positions of remaining bombs
+      function randomizeBombPositions() {
+        const wallBounds = getWallBounds();
+        
+        bombs.forEach(bomb => {
+          let newX, newY;
+          let attempts = 0;
+          const maxAttempts = 50;
+          
+          do {
+            newX = Math.floor(Math.random() * mazeSize);
+            newY = Math.floor(Math.random() * mazeSize);
+            attempts++;
+            
+            // Check if position is not at start or goal
+            if ((newX === 0 && newY === 0) || (newX === mazeSize - 1 && newY === mazeSize - 1)) {
+              continue;
+            }
+            
+            // Check if position is not on a wall
+            const testLeft = (newX / mazeSize) * 100;
+            const testTop = (newY / mazeSize) * 100;
+            const testRight = ((newX + 1) / mazeSize) * 100;
+            const testBottom = ((newY + 1) / mazeSize) * 100;
+            
+            let onWall = false;
+            for (let wall of wallBounds) {
+              if (
+                testLeft < wall.right &&
+                testRight > wall.left &&
+                testTop < wall.bottom &&
+                testBottom > wall.top
+              ) {
+                onWall = true;
+                break;
+              }
+            }
+            
+            if (!onWall || attempts >= maxAttempts) {
+              bomb.style.gridColumn = newX + 1;
+              bomb.style.gridRow = newY + 1;
+              break;
+            }
+          } while (attempts < maxAttempts);
+        });
+      }
+
       // Check collision with bombs
       function checkBombCollision() {
         const marbleRect = marble.getBoundingClientRect();
@@ -755,6 +869,10 @@
             // Remove the bomb from DOM and array
             bomb.remove();
             bombs.splice(i, 1);
+            
+            // Randomize remaining bombs
+            randomizeBombPositions();
+            
             return true;
           }
         }
@@ -923,6 +1041,7 @@
       function startGame() {
         startBtn.style.display = "none";
         controls.style.display = "grid";
+        settingsToggle.style.display = "flex";
 
         // Generate the first maze
         level = 1;
@@ -984,6 +1103,12 @@
         difficultySelector.style.display = "none";
         startBtn.style.display = "inline-flex";
         hint.textContent = "Hard mode selected! 20x20 maze. Tap 'Start Game' to begin!";
+      });
+      
+      // Settings toggle
+      settingsToggle.addEventListener("click", () => {
+        settingsToggle.classList.toggle("active");
+        speedControls.classList.toggle("show");
       });
       
       // Confetti celebration function
