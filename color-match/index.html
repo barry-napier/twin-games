@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Match - Fun Color Learning Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .instructions {
+            color: #555;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 15px;
+            border: 3px dashed #ddd;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-box {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-width: 150px;
+        }
+
+        .shape-display {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .shape {
+            width: 150px;
+            height: 150px;
+            transition: all 0.3s ease;
+            animation: shapeAppear 0.5s ease;
+            cursor: pointer;
+        }
+
+        @keyframes shapeAppear {
+            from {
+                transform: scale(0) rotate(180deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .shape:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .circle {
+            border-radius: 50%;
+        }
+
+        .square {
+            border-radius: 10px;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 75px solid transparent;
+            border-right: 75px solid transparent;
+            border-bottom: 150px solid;
+        }
+
+        .star {
+            position: relative;
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 75px solid transparent;
+            border-right: 75px solid transparent;
+            border-bottom: 55px solid;
+        }
+
+        .star:before {
+            content: '';
+            position: absolute;
+            left: -75px;
+            top: -40px;
+            width: 0;
+            height: 0;
+            border-left: 75px solid transparent;
+            border-right: 75px solid transparent;
+            border-bottom: 55px solid;
+            transform: rotate(35deg);
+        }
+
+        .star:after {
+            content: '';
+            position: absolute;
+            left: -75px;
+            top: 3px;
+            width: 0;
+            height: 0;
+            border-left: 75px solid transparent;
+            border-right: 75px solid transparent;
+            border-bottom: 55px solid;
+            transform: rotate(-35deg);
+        }
+
+        .color-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .color-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .color-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-btn:active:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .color-btn.red { background: linear-gradient(135deg, #ff6b6b, #d63447); }
+        .color-btn.blue { background: linear-gradient(135deg, #4dabf7, #1864ab); }
+        .color-btn.yellow { background: linear-gradient(135deg, #ffd43b, #fab005); }
+        .color-btn.green { background: linear-gradient(135deg, #51cf66, #2b8a3e); }
+        .color-btn.purple { background: linear-gradient(135deg, #9775fa, #7048e8); }
+        .color-btn.orange { background: linear-gradient(135deg, #ff922b, #e8590c); }
+
+        .message {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 40px;
+            animation: messageAppear 0.5s ease;
+        }
+
+        @keyframes messageAppear {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .message.correct {
+            color: #2b8a3e;
+        }
+
+        .message.wrong {
+            color: #d63447;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4em;
+            animation: celebrate 1s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ffd43b;
+            animation: confettiFall 3s linear;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .shape {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .triangle {
+                border-left-width: 50px;
+                border-right-width: 50px;
+                border-bottom-width: 100px;
+            }
+            
+            .color-btn {
+                padding: 15px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🌈 Color Match Game 🌈</h1>
+        
+        <div class="instructions">
+            Click the button that matches the color of the shape!
+        </div>
+        
+        <div class="score-container">
+            <div class="score-box">
+                Score: <span id="score">0</span>
+            </div>
+            <div class="score-box">
+                Round: <span id="round">1</span>/10
+            </div>
+        </div>
+        
+        <div class="shape-display">
+            <div id="shape" class="shape"></div>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="color-buttons" id="colorButtons">
+            <button class="color-btn red" onclick="checkAnswer('red')">Red</button>
+            <button class="color-btn blue" onclick="checkAnswer('blue')">Blue</button>
+            <button class="color-btn yellow" onclick="checkAnswer('yellow')">Yellow</button>
+            <button class="color-btn green" onclick="checkAnswer('green')">Green</button>
+            <button class="color-btn purple" onclick="checkAnswer('purple')">Purple</button>
+            <button class="color-btn orange" onclick="checkAnswer('orange')">Orange</button>
+        </div>
+        
+        <button class="restart-btn" onclick="restartGame()">🔄 New Game</button>
+    </div>
+
+    <audio id="correctSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE" type="audio/wav">
+    </audio>
+    
+    <audio id="wrongSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRiQCAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQACAADw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw" type="audio/wav">
+    </audio>
+
+    <script>
+        // Game state
+        let currentColor = '';
+        let currentShape = '';
+        let score = 0;
+        let round = 1;
+        const maxRounds = 10;
+        let isAnswering = false;
+
+        // Color and shape options
+        const colors = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+        const shapes = ['circle', 'square', 'triangle', 'star'];
+        const colorHex = {
+            red: '#ff6b6b',
+            blue: '#4dabf7',
+            yellow: '#ffd43b',
+            green: '#51cf66',
+            purple: '#9775fa',
+            orange: '#ff922b'
+        };
+
+        // Encouraging messages
+        const correctMessages = [
+            "🎉 Awesome job!",
+            "⭐ You're a star!",
+            "🎈 Fantastic!",
+            "🌟 Super!",
+            "🎊 Brilliant!",
+            "✨ Amazing!",
+            "🏆 Excellent!",
+            "🎯 Perfect!",
+            "💫 Wonderful!",
+            "🌈 Great work!"
+        ];
+
+        const wrongMessages = [
+            "Try again! 💪",
+            "Almost there! 🌟",
+            "Keep trying! 😊",
+            "You can do it! 👍",
+            "Don't give up! 💖"
+        ];
+
+        // Initialize game
+        function init() {
+            generateNewShape();
+        }
+
+        // Generate a new shape with random color
+        function generateNewShape() {
+            isAnswering = false;
+            
+            // Clear message
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = '';
+            messageEl.className = 'message';
+            
+            // Random shape and color
+            currentShape = shapes[Math.floor(Math.random() * shapes.length)];
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Update shape display
+            const shapeEl = document.getElementById('shape');
+            shapeEl.className = `shape ${currentShape}`;
+            
+            // Apply color based on shape type
+            if (currentShape === 'triangle' || currentShape === 'star') {
+                shapeEl.style.borderBottomColor = colorHex[currentColor];
+                if (currentShape === 'star') {
+                    shapeEl.style.color = colorHex[currentColor];
+                    // Set pseudo-element colors using CSS variable
+                    shapeEl.style.setProperty('--star-color', colorHex[currentColor]);
+                }
+            } else {
+                shapeEl.style.backgroundColor = colorHex[currentColor];
+            }
+            
+            // Add some animation
+            shapeEl.style.animation = 'none';
+            setTimeout(() => {
+                shapeEl.style.animation = 'shapeAppear 0.5s ease';
+            }, 10);
+        }
+
+        // Check if the answer is correct
+        function checkAnswer(selectedColor) {
+            if (isAnswering) return;
+            isAnswering = true;
+            
+            const messageEl = document.getElementById('message');
+            
+            if (selectedColor === currentColor) {
+                // Correct answer
+                score++;
+                document.getElementById('score').textContent = score;
+                
+                // Play success sound
+                playSound('correct');
+                
+                // Show encouraging message
+                const randomMessage = correctMessages[Math.floor(Math.random() * correctMessages.length)];
+                messageEl.textContent = randomMessage;
+                messageEl.className = 'message correct';
+                
+                // Create celebration effect
+                createCelebration();
+                
+                // Move to next round
+                setTimeout(() => {
+                    if (round < maxRounds) {
+                        round++;
+                        document.getElementById('round').textContent = round;
+                        generateNewShape();
+                    } else {
+                        endGame();
+                    }
+                }, 2000);
+                
+            } else {
+                // Wrong answer
+                playSound('wrong');
+                
+                // Show encouraging message to try again
+                const randomMessage = wrongMessages[Math.floor(Math.random() * wrongMessages.length)];
+                messageEl.textContent = randomMessage;
+                messageEl.className = 'message wrong';
+                
+                // Shake animation for wrong answer
+                const shapeEl = document.getElementById('shape');
+                shapeEl.style.animation = 'shake 0.5s';
+                
+                setTimeout(() => {
+                    isAnswering = false;
+                    messageEl.textContent = '';
+                    messageEl.className = 'message';
+                }, 1500);
+            }
+        }
+
+        // Play sound effects
+        function playSound(type) {
+            try {
+                // Create temporary audio for better browser compatibility
+                const audio = new Audio();
+                if (type === 'correct') {
+                    // Simple success beep
+                    audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE';
+                } else {
+                    // Simple error beep
+                    audio.src = 'data:audio/wav;base64,UklGRiQCAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQACAADw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw';
+                }
+                audio.volume = 0.3;
+                audio.play().catch(() => {
+                    // Silently fail if audio doesn't work
+                });
+            } catch (e) {
+                // Silently fail if audio doesn't work
+            }
+        }
+
+        // Create celebration animation
+        function createCelebration() {
+            // Add emoji celebration
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = '🎉';
+            document.body.appendChild(celebration);
+            
+            setTimeout(() => {
+                celebration.remove();
+            }, 1000);
+            
+            // Add confetti
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)].replace(/([a-z])/, c => colorHex[colors[Math.floor(Math.random() * colors.length)]]);
+                    confetti.style.backgroundColor = colorHex[colors[Math.floor(Math.random() * colors.length)]];
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+
+        // End game
+        function endGame() {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = `🏆 Game Complete! 🏆<br>Final Score: ${score}/${maxRounds}`;
+            messageEl.className = 'message correct';
+            
+            // Big celebration for game completion
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    createCelebration();
+                }, i * 200);
+            }
+        }
+
+        // Restart game
+        function restartGame() {
+            score = 0;
+            round = 1;
+            document.getElementById('score').textContent = score;
+            document.getElementById('round').textContent = round;
+            document.getElementById('message').textContent = '';
+            generateNewShape();
+        }
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+            
+            .star:before, .star:after {
+                border-bottom-color: inherit;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Start game when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

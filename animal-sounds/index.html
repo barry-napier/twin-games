@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Sounds - Fun Learning Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #5b21b6;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            padding: 15px 30px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            transform: scale(1.05);
+        }
+
+        .animals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .animal-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .animal-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .animal-card.correct {
+            animation: correctAnswer 0.6s ease;
+            background: linear-gradient(135deg, #90EE90, #98FB98);
+        }
+
+        .animal-card.incorrect {
+            animation: incorrectAnswer 0.6s ease;
+            background: linear-gradient(135deg, #FFB6C1, #FFC0CB);
+        }
+
+        @keyframes correctAnswer {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes incorrectAnswer {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .animal-emoji {
+            font-size: 80px;
+            margin-bottom: 10px;
+            display: block;
+            animation: wiggle 2s infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        .animal-name {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .quiz-section {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .quiz-section.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .quiz-question {
+            font-size: 2em;
+            color: #5b21b6;
+            margin-bottom: 20px;
+        }
+
+        .play-sound-btn {
+            padding: 20px 40px;
+            font-size: 1.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-sound-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-sound-btn:active {
+            transform: scale(0.95);
+        }
+
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #5b21b6;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .star {
+            color: gold;
+            font-size: 1.5em;
+            animation: sparkle 1s ease infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .feedback-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            background: white;
+            border-radius: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .feedback-message.show {
+            display: block;
+        }
+
+        .feedback-message.success {
+            color: #10b981;
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+        }
+
+        .feedback-message.error {
+            color: #ef4444;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .reset-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .reset-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .explore-mode {
+            display: block;
+        }
+
+        .quiz-mode {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: gold;
+            animation: fall 3s linear;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .animals-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            
+            .animal-emoji {
+                font-size: 60px;
+            }
+            
+            .animal-name {
+                font-size: 1.2em;
+            }
+            
+            .score-display {
+                top: 10px;
+                right: 10px;
+                padding: 10px 15px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎵 Animal Sounds Game 🎵</h1>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="switchMode('explore')">🔍 Explore Mode</button>
+            <button class="mode-btn" onclick="switchMode('quiz')">🎯 Quiz Mode</button>
+        </div>
+
+        <div class="explore-mode mode-content active">
+            <div class="animals-grid" id="exploreGrid"></div>
+        </div>
+
+        <div class="quiz-mode mode-content">
+            <div class="quiz-section" id="quizSection">
+                <div class="quiz-question">Which animal makes this sound?</div>
+                <button class="play-sound-btn" onclick="playQuizSound()">
+                    🔊 Play Sound Again
+                </button>
+            </div>
+            <div class="animals-grid" id="quizGrid"></div>
+            <button class="reset-btn" onclick="resetQuiz()">🔄 New Question</button>
+        </div>
+    </div>
+
+    <div class="score-display">
+        <span class="star">⭐</span>
+        <span id="scoreText">Score: 0</span>
+    </div>
+
+    <div class="feedback-message" id="feedbackMessage"></div>
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        // Animal data with emojis and sound representations
+        const animals = [
+            { name: 'Cow', emoji: '🐄', sound: 'Moo Moo!', audioText: 'moooo' },
+            { name: 'Dog', emoji: '🐕', sound: 'Woof Woof!', audioText: 'woof woof' },
+            { name: 'Cat', emoji: '🐈', sound: 'Meow Meow!', audioText: 'meow meow' },
+            { name: 'Sheep', emoji: '🐑', sound: 'Baa Baa!', audioText: 'baaa baaa' },
+            { name: 'Horse', emoji: '🐴', sound: 'Neigh Neigh!', audioText: 'neigh neigh' },
+            { name: 'Pig', emoji: '🐷', sound: 'Oink Oink!', audioText: 'oink oink' },
+            { name: 'Chicken', emoji: '🐓', sound: 'Cluck Cluck!', audioText: 'cluck cluck' },
+            { name: 'Duck', emoji: '🦆', sound: 'Quack Quack!', audioText: 'quack quack' },
+            { name: 'Lion', emoji: '🦁', sound: 'Roar!', audioText: 'roaaaar' },
+            { name: 'Elephant', emoji: '🐘', sound: 'Trumpet!', audioText: 'pawoo' },
+            { name: 'Monkey', emoji: '🐵', sound: 'Ooh Ooh Ah Ah!', audioText: 'ooh ooh ah ah' },
+            { name: 'Frog', emoji: '🐸', sound: 'Ribbit Ribbit!', audioText: 'ribbit ribbit' }
+        ];
+
+        let currentMode = 'explore';
+        let currentQuizAnimal = null;
+        let score = 0;
+        let isAnswering = false;
+
+        // Initialize the game
+        function initGame() {
+            createExploreGrid();
+            createQuizGrid();
+            updateScore();
+        }
+
+        // Create explore mode grid
+        function createExploreGrid() {
+            const exploreGrid = document.getElementById('exploreGrid');
+            exploreGrid.innerHTML = '';
+            
+            animals.forEach(animal => {
+                const card = createAnimalCard(animal, 'explore');
+                exploreGrid.appendChild(card);
+            });
+        }
+
+        // Create quiz mode grid
+        function createQuizGrid() {
+            const quizGrid = document.getElementById('quizGrid');
+            quizGrid.innerHTML = '';
+            
+            animals.forEach(animal => {
+                const card = createAnimalCard(animal, 'quiz');
+                quizGrid.appendChild(card);
+            });
+        }
+
+        // Create an animal card
+        function createAnimalCard(animal, mode) {
+            const card = document.createElement('div');
+            card.className = 'animal-card';
+            card.innerHTML = `
+                <span class="animal-emoji">${animal.emoji}</span>
+                <div class="animal-name">${animal.name}</div>
+            `;
+            
+            if (mode === 'explore') {
+                card.onclick = () => playAnimalSound(animal);
+            } else {
+                card.onclick = () => checkQuizAnswer(animal, card);
+            }
+            
+            return card;
+        }
+
+        // Play animal sound using Web Speech API
+        function playAnimalSound(animal) {
+            // Visual feedback
+            showFeedback(`${animal.emoji} ${animal.sound}`, 'success');
+            
+            // Use Web Speech API to speak the sound
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(animal.audioText);
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                utterance.volume = 1;
+                
+                // Different voices for different animals
+                if (animal.name === 'Lion' || animal.name === 'Elephant') {
+                    utterance.pitch = 0.5;
+                    utterance.rate = 0.6;
+                } else if (animal.name === 'Chicken' || animal.name === 'Duck') {
+                    utterance.pitch = 1.5;
+                    utterance.rate = 1.2;
+                }
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Switch between modes
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show/hide content
+            if (mode === 'explore') {
+                document.querySelector('.explore-mode').style.display = 'block';
+                document.querySelector('.quiz-mode').style.display = 'none';
+            } else {
+                document.querySelector('.explore-mode').style.display = 'none';
+                document.querySelector('.quiz-mode').style.display = 'block';
+                document.getElementById('quizSection').classList.add('active');
+                startNewQuizQuestion();
+            }
+        }
+
+        // Start a new quiz question
+        function startNewQuizQuestion() {
+            isAnswering = false;
+            
+            // Remove previous highlights
+            document.querySelectorAll('#quizGrid .animal-card').forEach(card => {
+                card.classList.remove('correct', 'incorrect');
+            });
+            
+            // Select random animal
+            currentQuizAnimal = animals[Math.floor(Math.random() * animals.length)];
+            
+            // Play the sound after a short delay
+            setTimeout(() => {
+                playQuizSound();
+            }, 500);
+        }
+
+        // Play the current quiz sound
+        function playQuizSound() {
+            if (currentQuizAnimal && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(currentQuizAnimal.audioText);
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                
+                // Adjust for specific animals
+                if (currentQuizAnimal.name === 'Lion' || currentQuizAnimal.name === 'Elephant') {
+                    utterance.pitch = 0.5;
+                    utterance.rate = 0.6;
+                } else if (currentQuizAnimal.name === 'Chicken' || currentQuizAnimal.name === 'Duck') {
+                    utterance.pitch = 1.5;
+                    utterance.rate = 1.2;
+                }
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Check quiz answer
+        function checkQuizAnswer(animal, card) {
+            if (isAnswering) return;
+            isAnswering = true;
+            
+            if (animal.name === currentQuizAnimal.name) {
+                // Correct answer
+                card.classList.add('correct');
+                score += 10;
+                updateScore();
+                showFeedback('🎉 Correct! Great job! 🎉', 'success');
+                createConfetti();
+                
+                setTimeout(() => {
+                    startNewQuizQuestion();
+                }, 2000);
+            } else {
+                // Incorrect answer
+                card.classList.add('incorrect');
+                showFeedback('Try again! 🤔', 'error');
+                
+                setTimeout(() => {
+                    card.classList.remove('incorrect');
+                    isAnswering = false;
+                }, 1000);
+            }
+        }
+
+        // Reset quiz
+        function resetQuiz() {
+            startNewQuizQuestion();
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('scoreText').textContent = `Score: ${score}`;
+        }
+
+        // Show feedback message
+        function showFeedback(message, type) {
+            const feedbackEl = document.getElementById('feedbackMessage');
+            feedbackEl.textContent = message;
+            feedbackEl.className = `feedback-message show ${type}`;
+            
+            setTimeout(() => {
+                feedbackEl.classList.remove('show');
+            }, 2000);
+        }
+
+        // Create confetti celebration
+        function createConfetti() {
+            const celebration = document.getElementById('celebration');
+            celebration.innerHTML = '';
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                celebration.appendChild(confetti);
+            }
+            
+            setTimeout(() => {
+                celebration.innerHTML = '';
+            }, 3000);
+        }
+
+        // Initialize game on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>

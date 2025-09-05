@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Sorting Puzzle - Fun Learning Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .level-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            padding: 12px 24px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .level-btn.easy {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .level-btn.medium {
+            background: #FFC107;
+            color: white;
+        }
+
+        .level-btn.hard {
+            background: #FF5722;
+            color: white;
+        }
+
+        .level-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .level-btn.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            color: #333;
+        }
+
+        .score-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .shapes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            min-height: 150px;
+        }
+
+        .slots-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(240, 240, 240, 0.8);
+            border-radius: 20px;
+            min-height: 150px;
+        }
+
+        .shape {
+            width: 100px;
+            height: 100px;
+            cursor: grab;
+            transition: all 0.3s;
+            position: relative;
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+        }
+
+        .shape:hover {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.4));
+        }
+
+        .shape.dragging {
+            cursor: grabbing;
+            opacity: 0.7;
+            transform: scale(1.2);
+            z-index: 1000;
+        }
+
+        .shape.placed {
+            pointer-events: none;
+            animation: successPulse 0.5s;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .slot {
+            width: 120px;
+            height: 120px;
+            border: 4px dashed #999;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .slot.highlight {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .slot.filled {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .slot-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.9em;
+            color: #666;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        /* Shape styles */
+        .circle {
+            background: radial-gradient(circle, #FF6B6B, #FF4444);
+            border-radius: 50%;
+        }
+
+        .square {
+            background: linear-gradient(135deg, #4ECDC4, #2ECC71);
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-bottom: 100px solid #FFD93D;
+            background: transparent !important;
+        }
+
+        .star {
+            background: #FFA500;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .heart {
+            background: #FF69B4;
+            position: relative;
+            transform: rotate(-45deg);
+            width: 80px;
+            height: 80px;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: #FF69B4;
+            border-radius: 50%;
+        }
+
+        .heart::before {
+            top: -40px;
+            left: 0;
+        }
+
+        .heart::after {
+            left: 40px;
+            top: 0;
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: celebrationPop 0.5s;
+            display: none;
+        }
+
+        @keyframes celebrationPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .celebration h2 {
+            font-size: 3em;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .celebration button {
+            padding: 15px 30px;
+            font-size: 1.3em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .celebration button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .stars {
+            font-size: 3em;
+            margin: 20px 0;
+            animation: starSpin 2s infinite;
+        }
+
+        @keyframes starSpin {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall 3s linear infinite;
+            z-index: 1999;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .hint-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 1.5em;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .hint-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            .shape { width: 80px; height: 80px; }
+            .slot { width: 100px; height: 100px; }
+            .heart { width: 65px; height: 65px; }
+            .heart::before, .heart::after { width: 65px; height: 65px; }
+            .heart::before { top: -32px; }
+            .heart::after { left: 32px; }
+            .triangle {
+                border-left-width: 40px;
+                border-right-width: 40px;
+                border-bottom-width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🌟 Shape Sorting Puzzle 🌟</h1>
+    </div>
+
+    <div class="level-selector">
+        <button class="level-btn easy active" onclick="setLevel('easy')">Easy (3 shapes)</button>
+        <button class="level-btn medium" onclick="setLevel('medium')">Medium (4 shapes)</button>
+        <button class="level-btn hard" onclick="setLevel('hard')">Hard (5 shapes)</button>
+    </div>
+
+    <div class="game-container">
+        <div class="score-board">
+            <div class="score-item">Score: <span id="score">0</span></div>
+            <div class="score-item">Level: <span id="current-level">Easy</span></div>
+            <div class="score-item">Time: <span id="timer">0:00</span></div>
+        </div>
+
+        <div class="game-area">
+            <div class="shapes-container" id="shapes-container">
+                <!-- Shapes will be dynamically added here -->
+            </div>
+
+            <div class="slots-container" id="slots-container">
+                <!-- Slots will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <button class="hint-button" onclick="showHint()" title="Need help?">💡</button>
+
+    <div class="celebration" id="celebration">
+        <h2>🎉 Awesome Job! 🎉</h2>
+        <div class="stars">⭐⭐⭐</div>
+        <p style="font-size: 1.5em; color: #666; margin: 20px 0;">You completed the puzzle!</p>
+        <p style="font-size: 1.2em; color: #999;">Time: <span id="final-time">0:00</span></p>
+        <button onclick="nextLevel()">Play Again!</button>
+    </div>
+
+    <script>
+        // Game state
+        let currentLevel = 'easy';
+        let score = 0;
+        let startTime = Date.now();
+        let timerInterval;
+        let correctPlacements = 0;
+        let totalShapes = 3;
+        let draggedShape = null;
+        let touchOffset = { x: 0, y: 0 };
+
+        // Shape definitions
+        const allShapes = ['circle', 'square', 'triangle', 'star', 'heart'];
+        const shapeColors = {
+            circle: 'radial-gradient(circle, #FF6B6B, #FF4444)',
+            square: 'linear-gradient(135deg, #4ECDC4, #2ECC71)',
+            triangle: '#FFD93D',
+            star: '#FFA500',
+            heart: '#FF69B4'
+        };
+
+        // Audio context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Play sound effect
+        function playSound(type) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'success') {
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } else if (type === 'complete') {
+                // Victory fanfare
+                const notes = [523.25, 587.33, 659.25, 783.99, 880.00, 987.77];
+                notes.forEach((freq, i) => {
+                    setTimeout(() => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+                        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        osc.start(audioContext.currentTime);
+                        osc.stop(audioContext.currentTime + 0.3);
+                    }, i * 100);
+                });
+            }
+        }
+
+        // Initialize game
+        function initGame() {
+            startTime = Date.now();
+            correctPlacements = 0;
+            score = 0;
+            updateScore();
+            
+            // Clear existing timer
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            // Set shapes based on level
+            let shapes;
+            switch(currentLevel) {
+                case 'easy':
+                    shapes = allShapes.slice(0, 3);
+                    totalShapes = 3;
+                    break;
+                case 'medium':
+                    shapes = allShapes.slice(0, 4);
+                    totalShapes = 4;
+                    break;
+                case 'hard':
+                    shapes = [...allShapes];
+                    totalShapes = 5;
+                    break;
+            }
+            
+            // Shuffle shapes for random placement
+            const shuffledShapes = [...shapes].sort(() => Math.random() - 0.5);
+            
+            // Create shapes
+            const shapesContainer = document.getElementById('shapes-container');
+            shapesContainer.innerHTML = '';
+            
+            shuffledShapes.forEach(shape => {
+                const shapeDiv = createShape(shape);
+                shapesContainer.appendChild(shapeDiv);
+            });
+            
+            // Create slots
+            const slotsContainer = document.getElementById('slots-container');
+            slotsContainer.innerHTML = '';
+            
+            shapes.forEach(shape => {
+                const slot = createSlot(shape);
+                slotsContainer.appendChild(slot);
+            });
+        }
+
+        // Create shape element
+        function createShape(shapeType) {
+            const shape = document.createElement('div');
+            shape.className = `shape ${shapeType}`;
+            shape.dataset.shape = shapeType;
+            shape.draggable = true;
+            
+            // Mouse events
+            shape.addEventListener('dragstart', handleDragStart);
+            shape.addEventListener('dragend', handleDragEnd);
+            
+            // Touch events
+            shape.addEventListener('touchstart', handleTouchStart, { passive: false });
+            shape.addEventListener('touchmove', handleTouchMove, { passive: false });
+            shape.addEventListener('touchend', handleTouchEnd, { passive: false });
+            
+            // Click to place (alternative control)
+            shape.addEventListener('click', handleShapeClick);
+            
+            return shape;
+        }
+
+        // Create slot element
+        function createSlot(shapeType) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.dataset.accepts = shapeType;
+            
+            const label = document.createElement('div');
+            label.className = 'slot-label';
+            label.textContent = shapeType;
+            slot.appendChild(label);
+            
+            // Drag events
+            slot.addEventListener('dragover', handleDragOver);
+            slot.addEventListener('drop', handleDrop);
+            slot.addEventListener('dragleave', handleDragLeave);
+            
+            return slot;
+        }
+
+        // Drag and drop handlers
+        function handleDragStart(e) {
+            draggedShape = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedShape = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            if (draggedShape && !e.currentTarget.querySelector('.shape')) {
+                e.currentTarget.classList.add('highlight');
+            }
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('highlight');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const slot = e.currentTarget;
+            slot.classList.remove('highlight');
+            
+            if (draggedShape && !slot.querySelector('.shape')) {
+                const shapeType = draggedShape.dataset.shape;
+                const accepts = slot.dataset.accepts;
+                
+                if (shapeType === accepts) {
+                    // Correct placement
+                    slot.appendChild(draggedShape);
+                    draggedShape.classList.add('placed');
+                    slot.classList.add('filled');
+                    playSound('success');
+                    correctPlacements++;
+                    score += 10;
+                    updateScore();
+                    
+                    // Create floating points animation
+                    showPoints(slot, '+10');
+                    
+                    // Check if puzzle is complete
+                    if (correctPlacements === totalShapes) {
+                        completePuzzle();
+                    }
+                } else {
+                    // Wrong placement
+                    playSound('wrong');
+                    wiggleElement(draggedShape);
+                }
+            }
+        }
+
+        // Touch handlers for mobile
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            draggedShape = e.target;
+            draggedShape.classList.add('dragging');
+            
+            const rect = draggedShape.getBoundingClientRect();
+            touchOffset.x = touch.clientX - rect.left;
+            touchOffset.y = touch.clientY - rect.top;
+            
+            // Create a clone for dragging
+            const clone = draggedShape.cloneNode(true);
+            clone.id = 'touch-clone';
+            clone.style.position = 'fixed';
+            clone.style.left = `${touch.clientX - touchOffset.x}px`;
+            clone.style.top = `${touch.clientY - touchOffset.y}px`;
+            clone.style.pointerEvents = 'none';
+            clone.style.zIndex = '2000';
+            clone.classList.add('dragging');
+            document.body.appendChild(clone);
+            
+            draggedShape.style.opacity = '0.3';
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const clone = document.getElementById('touch-clone');
+            if (clone) {
+                clone.style.left = `${touch.clientX - touchOffset.x}px`;
+                clone.style.top = `${touch.clientY - touchOffset.y}px`;
+                
+                // Highlight slot under touch
+                const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+                if (elementBelow && elementBelow.classList.contains('slot') && !elementBelow.querySelector('.shape')) {
+                    elementBelow.classList.add('highlight');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            const clone = document.getElementById('touch-clone');
+            if (clone) {
+                const touch = e.changedTouches[0];
+                const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                clone.remove();
+                draggedShape.style.opacity = '1';
+                draggedShape.classList.remove('dragging');
+                
+                if (elementBelow && elementBelow.classList.contains('slot') && !elementBelow.querySelector('.shape')) {
+                    const shapeType = draggedShape.dataset.shape;
+                    const accepts = elementBelow.dataset.accepts;
+                    
+                    elementBelow.classList.remove('highlight');
+                    
+                    if (shapeType === accepts) {
+                        elementBelow.appendChild(draggedShape);
+                        draggedShape.classList.add('placed');
+                        elementBelow.classList.add('filled');
+                        playSound('success');
+                        correctPlacements++;
+                        score += 10;
+                        updateScore();
+                        showPoints(elementBelow, '+10');
+                        
+                        if (correctPlacements === totalShapes) {
+                            completePuzzle();
+                        }
+                    } else {
+                        playSound('wrong');
+                        wiggleElement(draggedShape);
+                    }
+                }
+                
+                draggedShape = null;
+            }
+        }
+
+        // Click to place handler
+        let selectedShape = null;
+        function handleShapeClick(e) {
+            if (e.target.classList.contains('placed')) return;
+            
+            // Deselect previous shape
+            if (selectedShape && selectedShape !== e.target) {
+                selectedShape.style.border = 'none';
+            }
+            
+            if (selectedShape === e.target) {
+                // Deselect
+                selectedShape.style.border = 'none';
+                selectedShape = null;
+            } else {
+                // Select new shape
+                selectedShape = e.target;
+                selectedShape.style.border = '4px solid #FFD700';
+                
+                // Add click handlers to slots
+                document.querySelectorAll('.slot').forEach(slot => {
+                    slot.onclick = function() {
+                        if (selectedShape && !this.querySelector('.shape')) {
+                            const shapeType = selectedShape.dataset.shape;
+                            const accepts = this.dataset.accepts;
+                            
+                            if (shapeType === accepts) {
+                                this.appendChild(selectedShape);
+                                selectedShape.classList.add('placed');
+                                selectedShape.style.border = 'none';
+                                this.classList.add('filled');
+                                playSound('success');
+                                correctPlacements++;
+                                score += 10;
+                                updateScore();
+                                showPoints(this, '+10');
+                                
+                                selectedShape = null;
+                                
+                                if (correctPlacements === totalShapes) {
+                                    completePuzzle();
+                                }
+                            } else {
+                                playSound('wrong');
+                                wiggleElement(selectedShape);
+                            }
+                        }
+                    };
+                });
+            }
+        }
+
+        // Show floating points
+        function showPoints(element, points) {
+            const pointsDiv = document.createElement('div');
+            pointsDiv.textContent = points;
+            pointsDiv.style.cssText = `
+                position: absolute;
+                color: #4CAF50;
+                font-size: 2em;
+                font-weight: bold;
+                pointer-events: none;
+                animation: floatUp 1s ease-out forwards;
+                z-index: 1000;
+            `;
+            
+            const rect = element.getBoundingClientRect();
+            pointsDiv.style.left = `${rect.left + rect.width / 2}px`;
+            pointsDiv.style.top = `${rect.top}px`;
+            
+            document.body.appendChild(pointsDiv);
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes floatUp {
+                    0% { transform: translateY(0); opacity: 1; }
+                    100% { transform: translateY(-50px); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            setTimeout(() => pointsDiv.remove(), 1000);
+        }
+
+        // Wiggle animation for wrong placement
+        function wiggleElement(element) {
+            element.style.animation = 'wiggle 0.5s';
+            setTimeout(() => {
+                element.style.animation = '';
+            }, 500);
+            
+            // Add wiggle animation if not exists
+            if (!document.querySelector('#wiggle-style')) {
+                const style = document.createElement('style');
+                style.id = 'wiggle-style';
+                style.textContent = `
+                    @keyframes wiggle {
+                        0%, 100% { transform: translateX(0); }
+                        25% { transform: translateX(-10px); }
+                        75% { transform: translateX(10px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Complete puzzle
+        function completePuzzle() {
+            clearInterval(timerInterval);
+            playSound('complete');
+            
+            // Show celebration
+            const celebration = document.getElementById('celebration');
+            document.getElementById('final-time').textContent = document.getElementById('timer').textContent;
+            celebration.style.display = 'block';
+            
+            // Create confetti
+            for (let i = 0; i < 50; i++) {
+                createConfetti();
+            }
+            
+            // Update score with time bonus
+            const timeElapsed = Math.floor((Date.now() - startTime) / 1000);
+            const timeBonus = Math.max(0, 100 - timeElapsed);
+            score += timeBonus;
+            updateScore();
+        }
+
+        // Create confetti
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * window.innerWidth + 'px';
+            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 4000);
+        }
+
+        // Set level
+        function setLevel(level) {
+            currentLevel = level;
+            document.getElementById('current-level').textContent = level.charAt(0).toUpperCase() + level.slice(1);
+            
+            // Update button states
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains(level)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            initGame();
+        }
+
+        // Next level
+        function nextLevel() {
+            document.getElementById('celebration').style.display = 'none';
+            initGame();
+        }
+
+        // Show hint
+        function showHint() {
+            // Find first unplaced shape
+            const unplacedShape = document.querySelector('.shape:not(.placed)');
+            if (unplacedShape) {
+                const shapeType = unplacedShape.dataset.shape;
+                const targetSlot = document.querySelector(`.slot[data-accepts="${shapeType}"]:not(.filled)`);
+                
+                if (targetSlot) {
+                    // Highlight both shape and slot
+                    unplacedShape.style.animation = 'pulse 1s infinite';
+                    targetSlot.style.animation = 'pulse 1s infinite';
+                    
+                    setTimeout(() => {
+                        unplacedShape.style.animation = '';
+                        targetSlot.style.animation = '';
+                    }, 3000);
+                    
+                    // Add pulse animation if not exists
+                    if (!document.querySelector('#pulse-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'pulse-style';
+                        style.textContent = `
+                            @keyframes pulse {
+                                0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(76, 175, 80, 0.5); }
+                                50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                }
+            }
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+
+        // Update timer
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Initialize game on load
+        window.addEventListener('load', () => {
+            initGame();
+            
+            // Enable audio on first interaction
+            document.addEventListener('click', () => {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }, { once: true });
+        });
+
+        // Prevent default touch behavior
+        document.addEventListener('touchmove', (e) => {
+            if (draggedShape) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>

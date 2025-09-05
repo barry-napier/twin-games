@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fun Drawing Canvas - Kids Art Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .title {
+            font-size: 24px;
+            color: #764ba2;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .prompt-box {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tools-panel {
+            background: rgba(255, 255, 255, 0.95);
+            width: 120px;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            border-color: #333;
+            transform: scale(1.15);
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .brush-sizes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .brush-size {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .brush-size:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .brush-size.active {
+            background: #764ba2;
+            border-color: #764ba2;
+        }
+
+        .brush-size.active .brush-dot {
+            background: white;
+        }
+
+        .brush-dot {
+            border-radius: 50%;
+            background: #333;
+        }
+
+        .tool-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tool-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+
+        .tool-btn.active {
+            background: #764ba2;
+            border-color: #764ba2;
+            color: white;
+        }
+
+        .stamps {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .stamp-btn {
+            padding: 8px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .stamp-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .stamp-btn.active {
+            background: #f5576c;
+            border-color: #f5576c;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        #drawingCanvas {
+            display: block;
+            cursor: crosshair;
+            border-radius: 15px;
+        }
+
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .clear-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .save-btn {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .template-btn {
+            background: #ffd93d;
+            color: #333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .close-modal {
+            font-size: 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #999;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .template-card {
+            background: #f8f9fa;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            transform: scale(1.05);
+            border-color: #764ba2;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .template-preview {
+            width: 100%;
+            height: 100px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+        }
+
+        .template-name {
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .tools-panel {
+                width: 80px;
+                padding: 10px 5px;
+            }
+            
+            .color-btn {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .title {
+                font-size: 18px;
+            }
+            
+            .prompt-box {
+                font-size: 14px;
+            }
+        }
+
+        .cursor-preview {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">🎨 Fun Drawing Studio</div>
+        <div class="prompt-box" onclick="getNewPrompt()">
+            <span id="drawingPrompt">Draw a happy sun! ☀️</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="tools-panel">
+            <div class="tool-section">
+                <div class="section-title">Colors</div>
+                <div class="color-palette">
+                    <div class="color-btn active" style="background: #000000" data-color="#000000"></div>
+                    <div class="color-btn" style="background: #FF0000" data-color="#FF0000"></div>
+                    <div class="color-btn" style="background: #FFA500" data-color="#FFA500"></div>
+                    <div class="color-btn" style="background: #FFFF00" data-color="#FFFF00"></div>
+                    <div class="color-btn" style="background: #00FF00" data-color="#00FF00"></div>
+                    <div class="color-btn" style="background: #00FFFF" data-color="#00FFFF"></div>
+                    <div class="color-btn" style="background: #0000FF" data-color="#0000FF"></div>
+                    <div class="color-btn" style="background: #FF00FF" data-color="#FF00FF"></div>
+                    <div class="color-btn" style="background: #8B4513" data-color="#8B4513"></div>
+                    <div class="color-btn" style="background: #FFC0CB" data-color="#FFC0CB"></div>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <div class="section-title">Brush Size</div>
+                <div class="brush-sizes">
+                    <div class="brush-size" data-size="5">
+                        <div class="brush-dot" style="width: 5px; height: 5px;"></div>
+                    </div>
+                    <div class="brush-size active" data-size="10">
+                        <div class="brush-dot" style="width: 10px; height: 10px;"></div>
+                    </div>
+                    <div class="brush-size" data-size="20">
+                        <div class="brush-dot" style="width: 20px; height: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <div class="section-title">Tools</div>
+                <div class="tool-btn active" id="brushTool" title="Brush">🖌️</div>
+                <div class="tool-btn" id="eraserTool" title="Eraser">🧹</div>
+            </div>
+
+            <div class="tool-section">
+                <div class="section-title">Stamps</div>
+                <div class="stamps">
+                    <div class="stamp-btn" data-stamp="⭐">⭐</div>
+                    <div class="stamp-btn" data-stamp="❤️">❤️</div>
+                    <div class="stamp-btn" data-stamp="😊">😊</div>
+                    <div class="stamp-btn" data-stamp="🌈">🌈</div>
+                    <div class="stamp-btn" data-stamp="🌸">🌸</div>
+                    <div class="stamp-btn" data-stamp="🦋">🦋</div>
+                    <div class="stamp-btn" data-stamp="🐶">🐶</div>
+                    <div class="stamp-btn" data-stamp="🎈">🎈</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <div class="canvas-wrapper">
+                <canvas id="drawingCanvas"></canvas>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn template-btn" onclick="showTemplates()">📋 Templates</button>
+                <button class="action-btn clear-btn" onclick="clearCanvas()">🗑️ Clear</button>
+                <button class="action-btn save-btn" onclick="saveDrawing()">💾 Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Choose a Template!</div>
+                <button class="close-modal" onclick="closeTemplates()">&times;</button>
+            </div>
+            <div class="templates-grid">
+                <div class="template-card" onclick="loadTemplate('circle')">
+                    <div class="template-preview">⭕</div>
+                    <div class="template-name">Circle</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('star')">
+                    <div class="template-preview">⭐</div>
+                    <div class="template-name">Star</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('heart')">
+                    <div class="template-preview">❤️</div>
+                    <div class="template-name">Heart</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('house')">
+                    <div class="template-preview">🏠</div>
+                    <div class="template-name">House</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('tree')">
+                    <div class="template-preview">🌳</div>
+                    <div class="template-name">Tree</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('butterfly')">
+                    <div class="template-preview">🦋</div>
+                    <div class="template-name">Butterfly</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('cat')">
+                    <div class="template-preview">🐱</div>
+                    <div class="template-name">Cat Face</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('flower')">
+                    <div class="template-preview">🌸</div>
+                    <div class="template-name">Flower</div>
+                </div>
+                <div class="template-card" onclick="loadTemplate('rainbow')">
+                    <div class="template-preview">🌈</div>
+                    <div class="template-name">Rainbow</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cursor-preview" id="cursorPreview"></div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const cursorPreview = document.getElementById('cursorPreview');
+        
+        // Canvas dimensions
+        function resizeCanvas() {
+            const container = document.querySelector('.canvas-wrapper');
+            const maxWidth = window.innerWidth - 200;
+            const maxHeight = window.innerHeight - 200;
+            
+            canvas.width = Math.min(800, maxWidth);
+            canvas.height = Math.min(600, maxHeight);
+            
+            // Clear and set white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Drawing state
+        let isDrawing = false;
+        let currentColor = '#000000';
+        let currentSize = 10;
+        let currentTool = 'brush';
+        let currentStamp = null;
+        
+        // Drawing prompts
+        const prompts = [
+            "Draw a happy sun! ☀️",
+            "Draw your favorite animal! 🐾",
+            "Draw a big rainbow! 🌈",
+            "Draw a funny face! 😄",
+            "Draw a yummy ice cream! 🍦",
+            "Draw a beautiful flower! 🌸",
+            "Draw a cool car! 🚗",
+            "Draw your house! 🏠",
+            "Draw a birthday cake! 🎂",
+            "Draw a superhero! 🦸",
+            "Draw the moon and stars! 🌙⭐",
+            "Draw a dragon! 🐉",
+            "Draw your family! 👨‍👩‍👧‍👦",
+            "Draw a robot! 🤖",
+            "Draw underwater scene! 🐠",
+            "Draw a pizza! 🍕",
+            "Draw a butterfly! 🦋",
+            "Draw a dinosaur! 🦕",
+            "Draw a rocket ship! 🚀",
+            "Draw your best friend! 👫"
+        ];
+        
+        function getNewPrompt() {
+            const promptElement = document.getElementById('drawingPrompt');
+            const currentPrompt = promptElement.textContent;
+            let newPrompt;
+            do {
+                newPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+            } while (newPrompt === currentPrompt);
+            
+            promptElement.style.animation = 'none';
+            setTimeout(() => {
+                promptElement.textContent = newPrompt;
+                promptElement.style.animation = 'bounce 2s infinite';
+            }, 100);
+        }
+        
+        // Color selection
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentColor = this.dataset.color;
+                if (currentTool === 'eraser') {
+                    selectTool('brush');
+                }
+            });
+        });
+        
+        // Brush size selection
+        document.querySelectorAll('.brush-size').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.brush-size').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentSize = parseInt(this.dataset.size);
+                updateCursorPreview();
+            });
+        });
+        
+        // Tool selection
+        function selectTool(tool) {
+            currentTool = tool;
+            currentStamp = null;
+            
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.stamp-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (tool === 'brush') {
+                document.getElementById('brushTool').classList.add('active');
+                canvas.style.cursor = 'crosshair';
+            } else if (tool === 'eraser') {
+                document.getElementById('eraserTool').classList.add('active');
+                canvas.style.cursor = 'crosshair';
+            }
+            
+            updateCursorPreview();
+        }
+        
+        document.getElementById('brushTool').addEventListener('click', () => selectTool('brush'));
+        document.getElementById('eraserTool').addEventListener('click', () => selectTool('eraser'));
+        
+        // Stamp selection
+        document.querySelectorAll('.stamp-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.stamp-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentTool = 'stamp';
+                currentStamp = this.dataset.stamp;
+                canvas.style.cursor = 'pointer';
+                updateCursorPreview();
+            });
+        });
+        
+        // Update cursor preview
+        function updateCursorPreview() {
+            if (currentTool === 'stamp' && currentStamp) {
+                cursorPreview.innerHTML = currentStamp;
+                cursorPreview.style.fontSize = '30px';
+            } else {
+                cursorPreview.innerHTML = '';
+            }
+        }
+        
+        // Mouse/Touch position helpers
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+        
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        }
+        
+        // Drawing functions
+        function startDrawing(x, y) {
+            if (currentTool === 'stamp' && currentStamp) {
+                ctx.font = '40px Arial';
+                ctx.fillStyle = currentColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(currentStamp, x, y);
+            } else {
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+        }
+        
+        function draw(x, y) {
+            if (!isDrawing || currentTool === 'stamp') return;
+            
+            ctx.lineWidth = currentSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = currentColor;
+            }
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+        
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            ctx.beginPath();
+            ctx.globalCompositeOperation = 'source-over';
+        }
+        
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+            startDrawing(pos.x, pos.y);
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getMousePos(e);
+            
+            // Update cursor preview position
+            cursorPreview.style.left = e.clientX + 'px';
+            cursorPreview.style.top = e.clientY + 'px';
+            
+            draw(pos.x, pos.y);
+        });
+        
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+        
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const pos = getTouchPos(e);
+            startDrawing(pos.x, pos.y);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const pos = getTouchPos(e);
+            draw(pos.x, pos.y);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopDrawing();
+        });
+        
+        // Clear canvas
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear your drawing?')) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        
+        // Save drawing
+        function saveDrawing() {
+            const link = document.createElement('a');
+            link.download = 'my-drawing-' + Date.now() + '.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Template functions
+        function showTemplates() {
+            document.getElementById('templateModal').style.display = 'flex';
+        }
+        
+        function closeTemplates() {
+            document.getElementById('templateModal').style.display = 'none';
+        }
+        
+        function loadTemplate(template) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            switch(template) {
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, 150, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'star':
+                    drawStar(centerX, centerY, 5, 150, 75);
+                    break;
+                    
+                case 'heart':
+                    drawHeart(centerX, centerY - 50, 150);
+                    break;
+                    
+                case 'house':
+                    drawHouse(centerX, centerY);
+                    break;
+                    
+                case 'tree':
+                    drawTree(centerX, centerY);
+                    break;
+                    
+                case 'butterfly':
+                    drawButterfly(centerX, centerY);
+                    break;
+                    
+                case 'cat':
+                    drawCatFace(centerX, centerY);
+                    break;
+                    
+                case 'flower':
+                    drawFlower(centerX, centerY);
+                    break;
+                    
+                case 'rainbow':
+                    drawRainbow(centerX, centerY);
+                    break;
+            }
+            
+            ctx.setLineDash([]);
+            closeTemplates();
+        }
+        
+        // Template drawing functions
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+            
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+                
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        
+        function drawHeart(x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + size / 4);
+            ctx.quadraticCurveTo(x - size / 2, y - size / 2, x - size / 2, y);
+            ctx.quadraticCurveTo(x - size / 2, y - size / 1.5, x, y - size / 2);
+            ctx.quadraticCurveTo(x + size / 2, y - size / 1.5, x + size / 2, y);
+            ctx.quadraticCurveTo(x + size / 2, y - size / 2, x, y + size / 4);
+            ctx.stroke();
+        }
+        
+        function drawHouse(x, y) {
+            // House base
+            ctx.strokeRect(x - 100, y - 50, 200, 150);
+            
+            // Roof
+            ctx.beginPath();
+            ctx.moveTo(x - 120, y - 50);
+            ctx.lineTo(x, y - 150);
+            ctx.lineTo(x + 120, y - 50);
+            ctx.stroke();
+            
+            // Door
+            ctx.strokeRect(x - 30, y + 30, 60, 70);
+            
+            // Windows
+            ctx.strokeRect(x - 80, y - 20, 40, 40);
+            ctx.strokeRect(x + 40, y - 20, 40, 40);
+        }
+        
+        function drawTree(x, y) {
+            // Trunk
+            ctx.strokeRect(x - 30, y + 50, 60, 100);
+            
+            // Leaves (circles)
+            ctx.beginPath();
+            ctx.arc(x, y - 20, 80, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(x - 50, y + 20, 60, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(x + 50, y + 20, 60, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        function drawButterfly(x, y) {
+            // Body
+            ctx.beginPath();
+            ctx.ellipse(x, y, 15, 60, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Wings
+            ctx.beginPath();
+            ctx.ellipse(x - 50, y - 20, 40, 60, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.ellipse(x + 50, y - 20, 40, 60, Math.PI / 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.ellipse(x - 40, y + 20, 30, 40, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.ellipse(x + 40, y + 20, 30, 40, Math.PI / 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Antennae
+            ctx.beginPath();
+            ctx.moveTo(x - 5, y - 55);
+            ctx.quadraticCurveTo(x - 15, y - 70, x - 20, y - 75);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + 5, y - 55);
+            ctx.quadraticCurveTo(x + 15, y - 70, x + 20, y - 75);
+            ctx.stroke();
+        }
+        
+        function drawCatFace(x, y) {
+            // Head
+            ctx.beginPath();
+            ctx.arc(x, y, 100, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Ears
+            ctx.beginPath();
+            ctx.moveTo(x - 70, y - 70);
+            ctx.lineTo(x - 50, y - 120);
+            ctx.lineTo(x - 30, y - 70);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + 70, y - 70);
+            ctx.lineTo(x + 50, y - 120);
+            ctx.lineTo(x + 30, y - 70);
+            ctx.stroke();
+            
+            // Eyes
+            ctx.beginPath();
+            ctx.arc(x - 35, y - 20, 15, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(x + 35, y - 20, 15, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Nose
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - 10, y + 15);
+            ctx.lineTo(x + 10, y + 15);
+            ctx.closePath();
+            ctx.stroke();
+            
+            // Mouth
+            ctx.beginPath();
+            ctx.arc(x - 20, y + 15, 20, 0, Math.PI);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 15, 20, 0, Math.PI);
+            ctx.stroke();
+            
+            // Whiskers
+            ctx.beginPath();
+            ctx.moveTo(x - 100, y - 10);
+            ctx.lineTo(x - 50, y);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x - 100, y + 10);
+            ctx.lineTo(x - 50, y + 10);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + 100, y - 10);
+            ctx.lineTo(x + 50, y);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + 100, y + 10);
+            ctx.lineTo(x + 50, y + 10);
+            ctx.stroke();
+        }
+        
+        function drawFlower(x, y) {
+            // Petals
+            const petalCount = 8;
+            const petalRadius = 40;
+            const centerRadius = 80;
+            
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (Math.PI * 2 / petalCount) * i;
+                const petalX = x + Math.cos(angle) * centerRadius;
+                const petalY = y + Math.sin(angle) * centerRadius;
+                
+                ctx.beginPath();
+                ctx.arc(petalX, petalY, petalRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // Center
+            ctx.beginPath();
+            ctx.arc(x, y, 40, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Stem
+            ctx.beginPath();
+            ctx.moveTo(x, y + 40);
+            ctx.lineTo(x, y + 200);
+            ctx.stroke();
+            
+            // Leaves
+            ctx.beginPath();
+            ctx.ellipse(x - 30, y + 120, 20, 40, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.ellipse(x + 30, y + 140, 20, 40, Math.PI / 4, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        function drawRainbow(x, y) {
+            const colors = ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'];
+            const startRadius = 150;
+            
+            for (let i = 0; i < colors.length; i++) {
+                ctx.beginPath();
+                ctx.arc(x, y + 100, startRadius - (i * 20), Math.PI, 0, true);
+                ctx.stroke();
+            }
+        }
+        
+        // Initialize
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Prevent scrolling on touch devices
+        document.body.addEventListener('touchstart', (e) => {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>

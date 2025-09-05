@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch-a-Critter! 🐰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 95%;
+            position: relative;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px auto;
+            max-width: 500px;
+            aspect-ratio: 1;
+        }
+
+        .hole {
+            position: relative;
+            background: radial-gradient(ellipse at center, #8b4513 0%, #654321 70%);
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .critter {
+            position: absolute;
+            bottom: -100%;
+            width: 80%;
+            height: 80%;
+            font-size: 3em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: none;
+        }
+
+        .critter.show {
+            bottom: 20%;
+            pointer-events: all;
+        }
+
+        .critter.caught {
+            animation: catchAnimation 0.5s ease-out;
+        }
+
+        @keyframes catchAnimation {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        .score-popup {
+            position: absolute;
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+            pointer-events: none;
+            animation: scoreFloat 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes scoreFloat {
+            0% {
+                transform: translateY(0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .special-critter {
+            animation: sparkle 0.5s infinite alternate;
+        }
+
+        @keyframes sparkle {
+            0% { filter: brightness(1) drop-shadow(0 0 5px gold); }
+            100% { filter: brightness(1.3) drop-shadow(0 0 20px gold); }
+        }
+
+        .message-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 30px;
+            font-size: 2em;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            animation: messageAppear 0.5s ease-out;
+        }
+
+        @keyframes messageAppear {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .message-display.show {
+            display: block;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.1s linear;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .instructions {
+            text-align: center;
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.5em;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .encouragement {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            animation: encourageFloat 2s ease-out forwards;
+            z-index: 500;
+        }
+
+        @keyframes encourageFloat {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(0) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-20px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-40px) scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            .stat-box { font-size: 1em; padding: 8px 15px; }
+            .game-board { gap: 15px; }
+            .critter { font-size: 2.5em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="sound-toggle" onclick="toggleSound()">🔊</div>
+        
+        <div class="game-header">
+            <h1>Catch-a-Critter! 🌟</h1>
+            <div class="instructions">
+                Click the cute animals to pet them and earn points! 🐰🐻🦊
+            </div>
+        </div>
+
+        <div class="timer-bar">
+            <div class="timer-fill" id="timerFill"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">Score: <span id="score">0</span></div>
+            <div class="stat-box">High Score: <span id="highScore">0</span></div>
+            <div class="stat-box">Time: <span id="timer">45</span>s</div>
+            <div class="stat-box">Level: <span id="level">1</span></div>
+        </div>
+
+        <div class="game-board" id="gameBoard">
+            <!-- Holes will be generated here -->
+        </div>
+
+        <button class="play-button" onclick="startGame()">Start Game! 🎮</button>
+    </div>
+
+    <div class="message-display" id="messageDisplay"></div>
+
+    <script>
+        // Game variables
+        let score = 0;
+        let highScore = localStorage.getItem('catchACritterHighScore') || 0;
+        let timeLeft = 45;
+        let gameActive = false;
+        let level = 1;
+        let critterInterval;
+        let timerInterval;
+        let soundEnabled = true;
+        let baseSpeed = 1500;
+        let currentSpeed = baseSpeed;
+
+        // Critter types with emojis and point values
+        const critters = [
+            { emoji: '🐰', points: 10, name: 'Bunny' },
+            { emoji: '🐻', points: 10, name: 'Bear' },
+            { emoji: '🦊', points: 10, name: 'Fox' },
+            { emoji: '🐸', points: 15, name: 'Frog' },
+            { emoji: '🐹', points: 15, name: 'Hamster' },
+            { emoji: '🐭', points: 15, name: 'Mouse' },
+            { emoji: '🦝', points: 20, name: 'Raccoon' },
+            { emoji: '🐿️', points: 20, name: 'Squirrel' }
+        ];
+
+        const specialCritters = [
+            { emoji: '🦄', points: 50, name: 'Unicorn', special: true },
+            { emoji: '🐉', points: 100, name: 'Dragon', special: true },
+            { emoji: '⭐', points: 30, name: 'Star', special: true }
+        ];
+
+        const encouragements = [
+            'Great job! 🌟',
+            'Awesome! 🎉',
+            'Super! 🚀',
+            'Fantastic! 🏆',
+            'Amazing! 🌈',
+            'Wonderful! ✨',
+            'Excellent! 🎯',
+            'Perfect! 💫',
+            'Brilliant! 🌟',
+            'You rock! 🎸'
+        ];
+
+        // Sound effects using Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(frequency, duration, type = 'sine') {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playCatchSound() {
+            playSound(523, 0.1); // C5
+            setTimeout(() => playSound(659, 0.1), 50); // E5
+            setTimeout(() => playSound(784, 0.2), 100); // G5
+        }
+
+        function playSpecialSound() {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => playSound(400 + i * 100, 0.1, 'triangle'), i * 50);
+            }
+        }
+
+        function playStartSound() {
+            playSound(262, 0.1); // C4
+            setTimeout(() => playSound(330, 0.1), 100); // E4
+            setTimeout(() => playSound(392, 0.1), 200); // G4
+            setTimeout(() => playSound(523, 0.2), 300); // C5
+        }
+
+        function playEndSound() {
+            playSound(523, 0.2); // C5
+            setTimeout(() => playSound(392, 0.2), 200); // G4
+            setTimeout(() => playSound(330, 0.2), 400); // E4
+            setTimeout(() => playSound(262, 0.4), 600); // C4
+        }
+
+        // Initialize game board
+        function initBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole';
+                hole.dataset.index = i;
+                
+                const critter = document.createElement('div');
+                critter.className = 'critter';
+                critter.onclick = () => catchCritter(i);
+                
+                hole.appendChild(critter);
+                board.appendChild(hole);
+            }
+        }
+
+        // Show a random critter
+        function showCritter() {
+            if (!gameActive) return;
+            
+            const holes = document.querySelectorAll('.hole');
+            const availableHoles = [];
+            
+            holes.forEach((hole, index) => {
+                const critter = hole.querySelector('.critter');
+                if (!critter.classList.contains('show')) {
+                    availableHoles.push(index);
+                }
+            });
+            
+            if (availableHoles.length === 0) return;
+            
+            const randomIndex = availableHoles[Math.floor(Math.random() * availableHoles.length)];
+            const hole = holes[randomIndex];
+            const critterElement = hole.querySelector('.critter');
+            
+            // Decide if it's a special critter (10% chance after level 2)
+            let critterData;
+            if (level >= 2 && Math.random() < 0.1) {
+                critterData = specialCritters[Math.floor(Math.random() * specialCritters.length)];
+                critterElement.classList.add('special-critter');
+            } else {
+                critterData = critters[Math.floor(Math.random() * critters.length)];
+                critterElement.classList.remove('special-critter');
+            }
+            
+            critterElement.innerHTML = critterData.emoji;
+            critterElement.dataset.points = critterData.points;
+            critterElement.dataset.name = critterData.name;
+            critterElement.dataset.special = critterData.special || false;
+            
+            critterElement.classList.add('show');
+            
+            // Hide after a duration based on level
+            const hideTime = Math.max(800, 2000 - (level * 100));
+            setTimeout(() => {
+                if (critterElement.classList.contains('show')) {
+                    critterElement.classList.remove('show');
+                }
+            }, hideTime);
+        }
+
+        // Catch a critter
+        function catchCritter(index) {
+            const holes = document.querySelectorAll('.hole');
+            const critterElement = holes[index].querySelector('.critter');
+            
+            if (!critterElement.classList.contains('show') || !gameActive) return;
+            
+            const points = parseInt(critterElement.dataset.points);
+            const isSpecial = critterElement.dataset.special === 'true';
+            
+            score += points;
+            updateScore();
+            
+            // Play sound
+            if (isSpecial) {
+                playSpecialSound();
+            } else {
+                playCatchSound();
+            }
+            
+            // Show score popup
+            showScorePopup(holes[index], points, isSpecial);
+            
+            // Show encouragement
+            if (score % 50 === 0 || isSpecial) {
+                showEncouragement();
+            }
+            
+            // Animation
+            critterElement.classList.add('caught');
+            critterElement.classList.remove('show');
+            
+            setTimeout(() => {
+                critterElement.classList.remove('caught');
+            }, 500);
+            
+            // Level up every 100 points
+            if (score > 0 && score % 100 === 0) {
+                levelUp();
+            }
+        }
+
+        // Show score popup
+        function showScorePopup(hole, points, isSpecial) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = `+${points}${isSpecial ? ' ⭐' : ''}`;
+            popup.style.color = isSpecial ? '#FFD700' : '#4CAF50';
+            
+            const rect = hole.getBoundingClientRect();
+            popup.style.left = rect.left + rect.width / 2 + 'px';
+            popup.style.top = rect.top + 'px';
+            
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 1000);
+        }
+
+        // Show encouragement message
+        function showEncouragement() {
+            const message = encouragements[Math.floor(Math.random() * encouragements.length)];
+            const element = document.createElement('div');
+            element.className = 'encouragement';
+            element.textContent = message;
+            
+            document.body.appendChild(element);
+            
+            setTimeout(() => {
+                element.remove();
+            }, 2000);
+        }
+
+        // Level up
+        function levelUp() {
+            level++;
+            document.getElementById('level').textContent = level;
+            currentSpeed = Math.max(500, baseSpeed - (level * 150));
+            
+            showMessage(`Level ${level}! 🎉`);
+            
+            // Restart critter spawning with new speed
+            clearInterval(critterInterval);
+            critterInterval = setInterval(showCritter, currentSpeed);
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('catchACritterHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore;
+            }
+        }
+
+        // Update timer
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            const timerFill = document.getElementById('timerFill');
+            const percentage = (timeLeft / 45) * 100;
+            timerFill.style.width = percentage + '%';
+            
+            if (percentage < 33) {
+                timerFill.style.background = 'linear-gradient(90deg, #f44336, #ff9800)';
+            } else if (percentage < 66) {
+                timerFill.style.background = 'linear-gradient(90deg, #ff9800, #ffc107)';
+            }
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // Start game
+        function startGame() {
+            if (gameActive) return;
+            
+            gameActive = true;
+            score = 0;
+            timeLeft = 45;
+            level = 1;
+            currentSpeed = baseSpeed;
+            
+            updateScore();
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('level').textContent = level;
+            document.getElementById('timerFill').style.width = '100%';
+            document.getElementById('timerFill').style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+            
+            document.querySelector('.play-button').textContent = 'Game in Progress... 🎮';
+            document.querySelector('.play-button').disabled = true;
+            
+            playStartSound();
+            
+            // Start spawning critters
+            critterInterval = setInterval(showCritter, currentSpeed);
+            
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            // Show initial critters
+            setTimeout(showCritter, 100);
+            setTimeout(showCritter, 600);
+        }
+
+        // End game
+        function endGame() {
+            gameActive = false;
+            
+            clearInterval(critterInterval);
+            clearInterval(timerInterval);
+            
+            playEndSound();
+            
+            // Hide all critters
+            document.querySelectorAll('.critter').forEach(critter => {
+                critter.classList.remove('show');
+            });
+            
+            // Show final message
+            let message = `Game Over! 🎉<br>Your Score: ${score}`;
+            if (score === highScore && score > 0) {
+                message += '<br>NEW HIGH SCORE! 🏆';
+            }
+            
+            if (score >= 500) {
+                message += '<br>AMAZING! You\'re a Critter Master! 🌟';
+            } else if (score >= 300) {
+                message += '<br>EXCELLENT! Great job! 🎯';
+            } else if (score >= 150) {
+                message += '<br>GOOD! Keep practicing! 👍';
+            } else {
+                message += '<br>Nice try! Play again! 😊';
+            }
+            
+            showMessage(message, 3000);
+            
+            // Reset button
+            document.querySelector('.play-button').textContent = 'Play Again! 🎮';
+            document.querySelector('.play-button').disabled = false;
+        }
+
+        // Show message
+        function showMessage(text, duration = 2000) {
+            const messageDisplay = document.getElementById('messageDisplay');
+            messageDisplay.innerHTML = text;
+            messageDisplay.classList.add('show');
+            
+            setTimeout(() => {
+                messageDisplay.classList.remove('show');
+            }, duration);
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.querySelector('.sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+            
+            if (soundEnabled) {
+                playSound(440, 0.1);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initBoard();
+            document.getElementById('highScore').textContent = highScore;
+            
+            // Prevent context menu on mobile
+            document.addEventListener('contextmenu', e => e.preventDefault());
+        });
+
+        // Handle visibility change (pause when tab is hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameActive) {
+                clearInterval(critterInterval);
+                clearInterval(timerInterval);
+            } else if (!document.hidden && gameActive) {
+                critterInterval = setInterval(showCritter, currentSpeed);
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bubble Pop Fun!</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#87CEEB">
+    <meta name="description" content="A fun bubble popping game for kids!">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background decoration -->
+        <div class="background-decoration">
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="cloud cloud3"></div>
+            <div class="sun"></div>
+        </div>
+        
+        <!-- Score display -->
+        <div class="score-container">
+            <div class="score-label">Score</div>
+            <div id="score" class="score-value">0</div>
+        </div>
+        
+        <!-- Settings button -->
+        <button id="settings-btn" class="settings-btn" aria-label="Settings">
+            ⚙️
+        </button>
+        
+        <!-- Settings panel -->
+        <div id="settings-panel" class="settings-panel hidden">
+            <h2>Settings</h2>
+            <div class="setting-item">
+                <label for="sound-toggle">Sound Effects</label>
+                <input type="checkbox" id="sound-toggle" checked>
+            </div>
+            <div class="setting-item">
+                <label for="music-toggle">Background Music</label>
+                <input type="checkbox" id="music-toggle">
+            </div>
+            <button id="close-settings" class="close-btn">Close</button>
+        </div>
+        
+        <!-- Canvas for bubbles -->
+        <canvas id="bubble-canvas"></canvas>
+        
+        <!-- Pop effects container -->
+        <div id="pop-effects"></div>
+        
+        <!-- Loading screen -->
+        <div id="loading" class="loading">
+            <div class="loading-text">Loading Fun...</div>
+            <div class="loading-bubbles">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="sounds.js"></script>
+    <script src="game.js"></script>
+    <script src="service-worker-register.js"></script>
+</body>
+</html>

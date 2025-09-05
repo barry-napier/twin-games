@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Counting Adventure - Learn to Count 1-20</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #5b3a70;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .level-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .level-btn.easy {
+            background: #4ade80;
+            color: white;
+        }
+
+        .level-btn.medium {
+            background: #fbbf24;
+            color: white;
+        }
+
+        .level-btn.hard {
+            background: #f87171;
+            color: white;
+        }
+
+        .level-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .level-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 15px;
+        }
+
+        .stars {
+            display: flex;
+            gap: 10px;
+            font-size: 2em;
+        }
+
+        .star {
+            transition: all 0.3s;
+            filter: grayscale(1);
+        }
+
+        .star.earned {
+            filter: grayscale(0);
+            animation: starPop 0.5s ease;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .score {
+            font-size: 1.3em;
+            color: #5b3a70;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 30px;
+            background: #e0e7ff;
+            border-radius: 15px;
+            margin: 0 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22d3ee);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .question-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.8em;
+            color: #5b3a70;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .objects-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 30px;
+            background: #fef3c7;
+            border-radius: 20px;
+            min-height: 200px;
+            align-items: center;
+        }
+
+        .object {
+            font-size: 3em;
+            animation: bounce 0.5s ease;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .object:hover {
+            transform: scale(1.2);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .answers-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .answer-btn {
+            padding: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            border: 3px solid #e0e7ff;
+            border-radius: 20px;
+            background: white;
+            color: #5b3a70;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .answer-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            background: #f0f9ff;
+        }
+
+        .answer-btn.correct {
+            background: #4ade80;
+            color: white;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .answer-btn.incorrect {
+            background: #f87171;
+            color: white;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5em;
+            z-index: 1000;
+            pointer-events: none;
+            animation: celebrate 1s ease;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #fbbf24;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .audio-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .audio-btn:hover {
+            transform: scale(1.1);
+            background: #7c3aed;
+        }
+
+        .audio-btn.muted {
+            background: #9ca3af;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .game-over h2 {
+            color: #5b3a70;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 2em;
+            color: #22d3ee;
+            margin-bottom: 20px;
+        }
+
+        .play-again-btn {
+            padding: 15px 40px;
+            font-size: 1.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .play-again-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .answers-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .object {
+                font-size: 2em;
+            }
+
+            .answer-btn {
+                font-size: 1.5em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="audio-btn" id="audioToggle" onclick="toggleAudio()">🔊</button>
+        
+        <div class="header">
+            <h1>🌟 Counting Adventure 🌟</h1>
+        </div>
+
+        <div class="level-selector">
+            <button class="level-btn easy active" onclick="setLevel('easy')">Easy (1-5)</button>
+            <button class="level-btn medium" onclick="setLevel('medium')">Medium (1-10)</button>
+            <button class="level-btn hard" onclick="setLevel('hard')">Hard (1-20)</button>
+        </div>
+
+        <div class="progress-container">
+            <div class="stars" id="stars">
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0/10</div>
+            </div>
+            <div class="score" id="score">Score: 0</div>
+        </div>
+
+        <div class="question-area">
+            <div class="question-text" id="questionText">How many apples do you see?</div>
+            <div class="objects-container" id="objectsContainer"></div>
+        </div>
+
+        <div class="answers-container" id="answersContainer"></div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2>🎉 Great Job! 🎉</h2>
+            <div class="final-score" id="finalScore">You got 0 out of 10!</div>
+            <div class="stars" id="finalStars"></div>
+            <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game configuration
+        const gameConfig = {
+            easy: { min: 1, max: 5, questions: 10 },
+            medium: { min: 1, max: 10, questions: 10 },
+            hard: { min: 1, max: 20, questions: 10 }
+        };
+
+        // Object types for counting
+        const objectTypes = [
+            { emoji: '🍎', name: 'apples' },
+            { emoji: '🍌', name: 'bananas' },
+            { emoji: '🍓', name: 'strawberries' },
+            { emoji: '🍊', name: 'oranges' },
+            { emoji: '🍇', name: 'grapes' },
+            { emoji: '⚽', name: 'soccer balls' },
+            { emoji: '🏀', name: 'basketballs' },
+            { emoji: '🎈', name: 'balloons' },
+            { emoji: '🚗', name: 'cars' },
+            { emoji: '✈️', name: 'airplanes' },
+            { emoji: '🚂', name: 'trains' },
+            { emoji: '🐶', name: 'dogs' },
+            { emoji: '🐱', name: 'cats' },
+            { emoji: '🐰', name: 'rabbits' },
+            { emoji: '🐻', name: 'bears' },
+            { emoji: '🦁', name: 'lions' },
+            { emoji: '🐸', name: 'frogs' },
+            { emoji: '🦋', name: 'butterflies' },
+            { emoji: '🌟', name: 'stars' },
+            { emoji: '🌈', name: 'rainbows' },
+            { emoji: '🎨', name: 'paint palettes' },
+            { emoji: '📚', name: 'books' },
+            { emoji: '🎮', name: 'game controllers' },
+            { emoji: '🧸', name: 'teddy bears' },
+            { emoji: '🎪', name: 'circus tents' }
+        ];
+
+        // Game state
+        let currentLevel = 'easy';
+        let currentQuestion = 0;
+        let score = 0;
+        let correctAnswer = 0;
+        let audioEnabled = true;
+        let isAnswering = false;
+
+        // Audio context for number reading
+        const synth = window.speechSynthesis;
+
+        // Initialize game
+        function initGame() {
+            generateQuestion();
+            updateProgress();
+        }
+
+        // Set difficulty level
+        function setLevel(level) {
+            currentLevel = level;
+            currentQuestion = 0;
+            score = 0;
+            
+            // Update active button
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateProgress();
+            generateQuestion();
+        }
+
+        // Generate a new question
+        function generateQuestion() {
+            isAnswering = false;
+            const config = gameConfig[currentLevel];
+            
+            // Generate random number of objects
+            correctAnswer = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+            
+            // Choose random object type
+            const objectType = objectTypes[Math.floor(Math.random() * objectTypes.length)];
+            
+            // Update question text
+            document.getElementById('questionText').textContent = 
+                `How many ${objectType.name} do you see?`;
+            
+            // Display objects
+            const container = document.getElementById('objectsContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < correctAnswer; i++) {
+                setTimeout(() => {
+                    const obj = document.createElement('span');
+                    obj.className = 'object';
+                    obj.textContent = objectType.emoji;
+                    obj.style.animationDelay = `${i * 0.1}s`;
+                    container.appendChild(obj);
+                    
+                    // Add click sound effect
+                    obj.addEventListener('click', () => {
+                        if (audioEnabled) {
+                            playClickSound();
+                        }
+                    });
+                }, i * 100);
+            }
+            
+            // Generate answer options
+            generateAnswers();
+            
+            // Read the question aloud
+            if (audioEnabled) {
+                setTimeout(() => {
+                    speakText(`How many ${objectType.name} do you see?`);
+                }, 500);
+            }
+        }
+
+        // Generate answer buttons
+        function generateAnswers() {
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+            
+            const answers = [correctAnswer];
+            const config = gameConfig[currentLevel];
+            
+            // Generate wrong answers
+            while (answers.length < 4) {
+                const wrongAnswer = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+                if (!answers.includes(wrongAnswer)) {
+                    answers.push(wrongAnswer);
+                }
+            }
+            
+            // Shuffle answers
+            answers.sort(() => Math.random() - 0.5);
+            
+            // Create buttons
+            answers.forEach((answer, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = answer;
+                btn.onclick = () => checkAnswer(answer, btn);
+                
+                setTimeout(() => {
+                    container.appendChild(btn);
+                }, index * 100);
+            });
+        }
+
+        // Check if answer is correct
+        function checkAnswer(answer, button) {
+            if (isAnswering) return;
+            isAnswering = true;
+            
+            const isCorrect = answer === correctAnswer;
+            
+            if (isCorrect) {
+                button.classList.add('correct');
+                score++;
+                updateStars();
+                
+                // Play success sound and speak
+                if (audioEnabled) {
+                    speakText(`Yes! That's right! ${correctAnswer}!`);
+                }
+                
+                // Show celebration
+                showCelebration();
+                createConfetti();
+            } else {
+                button.classList.add('incorrect');
+                
+                // Show correct answer
+                setTimeout(() => {
+                    document.querySelectorAll('.answer-btn').forEach(btn => {
+                        if (parseInt(btn.textContent) === correctAnswer) {
+                            btn.classList.add('correct');
+                        }
+                    });
+                }, 500);
+                
+                // Play error sound and speak
+                if (audioEnabled) {
+                    speakText(`Oops! The correct answer is ${correctAnswer}`);
+                }
+            }
+            
+            currentQuestion++;
+            updateProgress();
+            
+            // Next question or end game
+            setTimeout(() => {
+                if (currentQuestion < gameConfig[currentLevel].questions) {
+                    generateQuestion();
+                } else {
+                    endGame();
+                }
+            }, 2000);
+        }
+
+        // Update progress bar and counter
+        function updateProgress() {
+            const config = gameConfig[currentLevel];
+            const progress = (currentQuestion / config.questions) * 100;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = `${currentQuestion}/${config.questions}`;
+            
+            document.getElementById('score').textContent = `Score: ${score}`;
+        }
+
+        // Update stars based on score
+        function updateStars() {
+            const stars = document.querySelectorAll('.star');
+            const starCount = Math.floor((score / gameConfig[currentLevel].questions) * 5);
+            
+            for (let i = 0; i < starCount; i++) {
+                if (i < stars.length) {
+                    stars[i].classList.add('earned');
+                }
+            }
+        }
+
+        // Show celebration animation
+        function showCelebration() {
+            const celebrations = ['🎉', '🎊', '⭐', '🏆', '👏', '🎈'];
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = celebrations[Math.floor(Math.random() * celebrations.length)];
+            document.body.appendChild(celebration);
+            
+            setTimeout(() => {
+                celebration.remove();
+            }, 1000);
+        }
+
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ['#fbbf24', '#f87171', '#4ade80', '#60a5fa', '#c084fc'];
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = `confettiFall ${2 + Math.random() * 2}s linear`;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 4000);
+                }, i * 50);
+            }
+        }
+
+        // End game
+        function endGame() {
+            const gameOver = document.getElementById('gameOver');
+            const finalScore = document.getElementById('finalScore');
+            const finalStars = document.getElementById('finalStars');
+            const config = gameConfig[currentLevel];
+            
+            finalScore.textContent = `You got ${score} out of ${config.questions}!`;
+            
+            // Show final stars
+            const starCount = Math.floor((score / config.questions) * 5);
+            finalStars.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('span');
+                star.textContent = '⭐';
+                star.style.fontSize = '3em';
+                if (i < starCount) {
+                    star.style.filter = 'grayscale(0)';
+                } else {
+                    star.style.filter = 'grayscale(1)';
+                }
+                finalStars.appendChild(star);
+            }
+            
+            gameOver.classList.add('show');
+            
+            if (audioEnabled) {
+                const percentage = (score / config.questions) * 100;
+                let message = '';
+                if (percentage === 100) {
+                    message = 'Perfect! You got them all right!';
+                } else if (percentage >= 80) {
+                    message = 'Great job! You did amazing!';
+                } else if (percentage >= 60) {
+                    message = 'Good work! Keep practicing!';
+                } else {
+                    message = 'Nice try! Practice makes perfect!';
+                }
+                speakText(message);
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('gameOver').classList.remove('show');
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('earned');
+            });
+            updateProgress();
+            generateQuestion();
+        }
+
+        // Toggle audio
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audioToggle');
+            btn.textContent = audioEnabled ? '🔊' : '🔇';
+            btn.classList.toggle('muted', !audioEnabled);
+            
+            if (audioEnabled) {
+                speakText('Sound on');
+            }
+        }
+
+        // Speak text using Web Speech API
+        function speakText(text) {
+            if (!audioEnabled || !synth) return;
+            
+            // Cancel any ongoing speech
+            synth.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            utterance.volume = 0.8;
+            
+            // Try to use a child-friendly voice if available
+            const voices = synth.getVoices();
+            const preferredVoices = voices.filter(voice => 
+                voice.name.includes('Female') || 
+                voice.name.includes('Samantha') || 
+                voice.name.includes('Victoria')
+            );
+            
+            if (preferredVoices.length > 0) {
+                utterance.voice = preferredVoices[0];
+            }
+            
+            synth.speak(utterance);
+        }
+
+        // Play click sound effect
+        function playClickSound() {
+            // Create a simple click sound using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // Initialize game on load
+        window.addEventListener('load', () => {
+            // Load voices for speech synthesis
+            if (synth) {
+                synth.getVoices();
+                synth.addEventListener('voiceschanged', () => {
+                    synth.getVoices();
+                });
+            }
+            
+            initGame();
+        });
+
+        // Handle visibility change (pause audio when tab is hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && synth) {
+                synth.cancel();
+            }
+        });
+    </script>
+</body>
+</html>

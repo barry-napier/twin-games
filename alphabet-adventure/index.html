@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphabet Adventure - Learn Your ABCs!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: white;
+            font-size: 3em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .instructions {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            font-size: 1.3em;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .letter-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .letter {
+            background: white;
+            border: 3px solid #4a5568;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 2.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .letter:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .letter.active {
+            animation: wiggle 0.5s ease;
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .display-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 200px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .big-letter {
+            font-size: 5em;
+            color: #e53e3e;
+            margin-bottom: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .word-display {
+            font-size: 2em;
+            color: #2d3748;
+            margin-top: 20px;
+        }
+
+        .word-image {
+            font-size: 4em;
+            margin: 20px 0;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #00c9ff 0%, #92fe9d 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .stars {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            font-size: 2em;
+            animation: float 3s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(0deg);
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            .letter { font-size: 2em; padding: 15px; }
+            .big-letter { font-size: 4em; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🌟 Alphabet Adventure 🌟</h1>
+    
+    <div class="instructions">
+        Click on any letter to hear its sound and see a word!
+    </div>
+
+    <div class="display-area">
+        <div class="big-letter" id="bigLetter">Click a letter!</div>
+        <div class="word-image" id="wordImage"></div>
+        <div class="word-display" id="wordDisplay"></div>
+    </div>
+
+    <div class="letter-container" id="letterContainer"></div>
+
+    <button class="reset-btn" onclick="resetGame()">Play Again! 🎮</button>
+
+    <div class="stars" id="stars"></div>
+
+    <script>
+        const letterWords = {
+            'A': { word: 'Apple', emoji: '🍎' },
+            'B': { word: 'Ball', emoji: '⚽' },
+            'C': { word: 'Cat', emoji: '🐱' },
+            'D': { word: 'Dog', emoji: '🐶' },
+            'E': { word: 'Elephant', emoji: '🐘' },
+            'F': { word: 'Fish', emoji: '🐟' },
+            'G': { word: 'Grapes', emoji: '🍇' },
+            'H': { word: 'House', emoji: '🏠' },
+            'I': { word: 'Ice Cream', emoji: '🍦' },
+            'J': { word: 'Juice', emoji: '🧃' },
+            'K': { word: 'Kite', emoji: '🪁' },
+            'L': { word: 'Lion', emoji: '🦁' },
+            'M': { word: 'Moon', emoji: '🌙' },
+            'N': { word: 'Nest', emoji: '🪺' },
+            'O': { word: 'Orange', emoji: '🍊' },
+            'P': { word: 'Pizza', emoji: '🍕' },
+            'Q': { word: 'Queen', emoji: '👸' },
+            'R': { word: 'Rainbow', emoji: '🌈' },
+            'S': { word: 'Sun', emoji: '☀️' },
+            'T': { word: 'Tree', emoji: '🌳' },
+            'U': { word: 'Umbrella', emoji: '☂️' },
+            'V': { word: 'Violin', emoji: '🎻' },
+            'W': { word: 'Watermelon', emoji: '🍉' },
+            'X': { word: 'Xylophone', emoji: '🎵' },
+            'Y': { word: 'Yo-yo', emoji: '🪀' },
+            'Z': { word: 'Zebra', emoji: '🦓' }
+        };
+
+        let audioContext;
+        let currentLetter = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(frequency, duration) {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function speakLetter(letter) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+                utterance.text = `${letter}. ${letter} is for ${letterWords[letter].word}`;
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function createLetters() {
+            const container = document.getElementById('letterContainer');
+            container.innerHTML = '';
+            
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const letterDiv = document.createElement('div');
+                letterDiv.className = 'letter';
+                letterDiv.textContent = letter;
+                letterDiv.style.background = `hsl(${(i - 65) * 14}, 70%, 85%)`;
+                
+                letterDiv.addEventListener('click', () => selectLetter(letter, letterDiv));
+                container.appendChild(letterDiv);
+            }
+        }
+
+        function selectLetter(letter, element) {
+            // Remove active class from previous letter
+            document.querySelectorAll('.letter').forEach(l => l.classList.remove('active'));
+            
+            // Add active class to clicked letter
+            element.classList.add('active');
+            
+            // Update display
+            document.getElementById('bigLetter').textContent = letter;
+            document.getElementById('wordImage').textContent = letterWords[letter].emoji;
+            document.getElementById('wordDisplay').textContent = `${letter} is for ${letterWords[letter].word}!`;
+            
+            // Play sound effect
+            playSound(300 + (letter.charCodeAt(0) - 65) * 20, 0.3);
+            
+            // Speak the letter
+            speakLetter(letter);
+            
+            // Create celebration stars
+            createStars();
+            
+            currentLetter = letter;
+        }
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            starsContainer.innerHTML = '';
+            
+            const starEmojis = ['⭐', '✨', '🌟', '💫', '⚡'];
+            
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.animationDelay = Math.random() * 0.5 + 's';
+                    star.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    starsContainer.appendChild(star);
+                    
+                    setTimeout(() => star.remove(), 4000);
+                }, i * 100);
+            }
+        }
+
+        function resetGame() {
+            document.getElementById('bigLetter').textContent = 'Click a letter!';
+            document.getElementById('wordImage').textContent = '';
+            document.getElementById('wordDisplay').textContent = '';
+            document.querySelectorAll('.letter').forEach(l => l.classList.remove('active'));
+            
+            // Play reset sound
+            playSound(523.25, 0.1);
+            setTimeout(() => playSound(659.25, 0.1), 100);
+            setTimeout(() => playSound(783.99, 0.2), 200);
+        }
+
+        // Initialize the game
+        createLetters();
+
+        // Add keyboard support
+        document.addEventListener('keydown', (e) => {
+            const letter = e.key.toUpperCase();
+            if (letter >= 'A' && letter <= 'Z') {
+                const letterElements = document.querySelectorAll('.letter');
+                const targetElement = Array.from(letterElements).find(el => el.textContent === letter);
+                if (targetElement) {
+                    selectLetter(letter, targetElement);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
