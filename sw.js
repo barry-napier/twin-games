@@ -1,11 +1,39 @@
-const CACHE_NAME = 'twin-games-v1';
+const CACHE_NAME = 'twin-games-v2';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/manifest.json',
+  // Featured Games
   '/marble-maze/index.html',
   '/rhythm-tap/index.html',
   '/color-chain/index.html',
-  '/space-defender/index.html'
+  '/space-defender/index.html',
+  // Educational Games
+  '/alphabet-adventure/index.html',
+  '/number-counting/index.html',
+  '/counting-cookies/index.html',
+  '/color-mixing-lab/index.html',
+  '/shape-sorter/index.html',
+  '/shape-puzzle/index.html',
+  '/story-sequencer/index.html',
+  // Memory Games
+  '/memory-cards/index.html',
+  '/animal-memory/index.html',
+  '/animal-memory-match/index.html',
+  '/color-match/index.html',
+  // Action Games
+  '/balloon-pop/index.html',
+  '/bubble-pop/index.html',
+  '/catch-a-critter/index.html',
+  '/catch-the-stars/index.html',
+  // Music Games
+  '/animal-sounds/index.html',
+  '/animal-piano/index.html',
+  '/musical-drums/index.html',
+  // Creative Games
+  '/drawing-canvas/index.html',
+  '/paint-and-draw/index.html',
+  '/dress-up-doll/index.html'
 ];
 
 // Install event - cache resources

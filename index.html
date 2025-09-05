@@ -55,11 +55,26 @@
         
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
             width: 100%;
             animation: fadeInUp 0.8s ease-out;
+            margin-bottom: 30px;
+        }
+
+        .category-section {
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .category-title {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
         .game-card {
@@ -89,44 +104,51 @@
         }
         
         .game-icon {
-            height: 200px;
+            height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 5rem;
+            font-size: 4rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
-        .game-card:nth-child(1) .game-icon {
+        .featured .game-card:nth-child(1) .game-icon {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
         
-        .game-card:nth-child(2) .game-icon {
+        .featured .game-card:nth-child(2) .game-icon {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
         
-        .game-card:nth-child(3) .game-icon {
+        .featured .game-card:nth-child(3) .game-icon {
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
         
-        .game-card:nth-child(4) .game-icon {
+        .featured .game-card:nth-child(4) .game-icon {
             background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
         }
+
+        .educational .game-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .action .game-icon { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .creative .game-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .memory .game-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .music .game-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
         
         .game-info {
             padding: 20px;
         }
         
         .game-title {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #333;
         }
         
         .game-description {
             color: #666;
-            line-height: 1.5;
+            line-height: 1.4;
+            font-size: 0.9rem;
         }
         
         .coming-soon {
@@ -178,55 +200,240 @@
         <p>Fun games for Sarah & Finn!</p>
     </div>
     
-    <div class="games-grid">
-        <a href="marble-maze/index.html" class="game-card">
-            <div class="game-icon">
-                🔵
-            </div>
-            <div class="game-info">
-                <div class="game-title">Marble Maze</div>
-                <div class="game-description">
-                    Tilt your device to guide the marble through challenging mazes. 
-                    Features Sarah & Finn themed modes with multiple difficulty levels!
+    <!-- Featured Games -->
+    <div class="category-section">
+        <h2 class="category-title">⭐ Featured Games</h2>
+        <div class="games-grid featured">
+            <a href="marble-maze/index.html" class="game-card">
+                <div class="game-icon">🔵</div>
+                <div class="game-info">
+                    <div class="game-title">Marble Maze</div>
+                    <div class="game-description">Tilt your device to guide the marble through challenging mazes with Sarah & Finn themes!</div>
                 </div>
-            </div>
-        </a>
-        
-        <a href="rhythm-tap/index.html" class="game-card">
-            <div class="game-icon">
-                🎸
-            </div>
-            <div class="game-info">
-                <div class="game-title">Rhythm Tap Hero</div>
-                <div class="game-description">
-                    Tap to the beat! Hit falling notes in perfect timing across 4 difficulty levels with dynamic music.
+            </a>
+            
+            <a href="rhythm-tap/index.html" class="game-card">
+                <div class="game-icon">🎸</div>
+                <div class="game-info">
+                    <div class="game-title">Rhythm Tap Hero</div>
+                    <div class="game-description">Tap to the beat! Hit falling notes in perfect timing across 4 difficulty levels.</div>
                 </div>
-            </div>
-        </a>
-        
-        <a href="color-chain/index.html" class="game-card">
-            <div class="game-icon">
-                💥
-            </div>
-            <div class="game-info">
-                <div class="game-title">Color Chain Reaction</div>
-                <div class="game-description">
-                    Tap colored dots to create chain reactions! Clear the board with strategic moves and watch the satisfying particle effects.
+            </a>
+            
+            <a href="color-chain/index.html" class="game-card">
+                <div class="game-icon">💥</div>
+                <div class="game-info">
+                    <div class="game-title">Color Chain Reaction</div>
+                    <div class="game-description">Create chain reactions! Clear the board with strategic moves and particle effects.</div>
                 </div>
-            </div>
-        </a>
-        
-        <a href="space-defender/index.html" class="game-card">
-            <div class="game-icon">
-                🚀
-            </div>
-            <div class="game-info">
-                <div class="game-title">Space Defender</div>
-                <div class="game-description">
-                    Strategic tower defense in space! Place towers, upgrade them, and defend against waves of alien invaders.
+            </a>
+            
+            <a href="space-defender/index.html" class="game-card">
+                <div class="game-icon">🚀</div>
+                <div class="game-info">
+                    <div class="game-title">Space Defender</div>
+                    <div class="game-description">Strategic tower defense in space! Place towers and defend against alien waves.</div>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
+    </div>
+
+    <!-- Educational Games -->
+    <div class="category-section">
+        <h2 class="category-title">📚 Educational Games</h2>
+        <div class="games-grid educational">
+            <a href="alphabet-adventure/index.html" class="game-card">
+                <div class="game-icon">🔤</div>
+                <div class="game-info">
+                    <div class="game-title">Alphabet Adventure</div>
+                    <div class="game-description">Learn letters and sounds through interactive adventures and mini-games!</div>
+                </div>
+            </a>
+            
+            <a href="number-counting/index.html" class="game-card">
+                <div class="game-icon">🔢</div>
+                <div class="game-info">
+                    <div class="game-title">Number Counting</div>
+                    <div class="game-description">Master numbers 1-20 with interactive counting and math challenges.</div>
+                </div>
+            </a>
+            
+            <a href="counting-cookies/index.html" class="game-card">
+                <div class="game-icon">🍪</div>
+                <div class="game-info">
+                    <div class="game-title">Counting Cookies</div>
+                    <div class="game-description">Drag cookies to match numbers 1-10. Cookie Monster helps you learn!</div>
+                </div>
+            </a>
+            
+            <a href="color-mixing-lab/index.html" class="game-card">
+                <div class="game-icon">🧪</div>
+                <div class="game-info">
+                    <div class="game-title">Color Mixing Lab</div>
+                    <div class="game-description">Learn color theory by mixing primary colors in virtual beakers!</div>
+                </div>
+            </a>
+            
+            <a href="shape-sorter/index.html" class="game-card">
+                <div class="game-icon">🔶</div>
+                <div class="game-info">
+                    <div class="game-title">Shape Sorter</div>
+                    <div class="game-description">Sort 2D and 3D shapes by type, color, and size. Progressive difficulty!</div>
+                </div>
+            </a>
+            
+            <a href="shape-puzzle/index.html" class="game-card">
+                <div class="game-icon">🧩</div>
+                <div class="game-info">
+                    <div class="game-title">Shape Puzzle</div>
+                    <div class="game-description">Drag and drop geometric shapes to complete colorful puzzles.</div>
+                </div>
+            </a>
+            
+            <a href="story-sequencer/index.html" class="game-card">
+                <div class="game-icon">📖</div>
+                <div class="game-info">
+                    <div class="game-title">Story Sequencer</div>
+                    <div class="game-description">Arrange story panels in the right order with audio narration!</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Memory & Matching Games -->
+    <div class="category-section">
+        <h2 class="category-title">🧠 Memory Games</h2>
+        <div class="games-grid memory">
+            <a href="memory-cards/index.html" class="game-card">
+                <div class="game-icon">🃏</div>
+                <div class="game-info">
+                    <div class="game-title">Memory Cards</div>
+                    <div class="game-description">Classic memory matching game with colorful cards and smooth animations.</div>
+                </div>
+            </a>
+            
+            <a href="animal-memory/index.html" class="game-card">
+                <div class="game-icon">🐶</div>
+                <div class="game-info">
+                    <div class="game-title">Animal Memory</div>
+                    <div class="game-description">Match animal pairs with celebration effects and encouraging messages!</div>
+                </div>
+            </a>
+            
+            <a href="animal-memory-match/index.html" class="game-card">
+                <div class="game-icon">🦁</div>
+                <div class="game-info">
+                    <div class="game-title">Animal Memory Match</div>
+                    <div class="game-description">Advanced memory game with themes, power-ups, and high scores!</div>
+                </div>
+            </a>
+            
+            <a href="color-match/index.html" class="game-card">
+                <div class="game-icon">🌈</div>
+                <div class="game-info">
+                    <div class="game-title">Color Match</div>
+                    <div class="game-description">Quick color matching game that tests your reflexes and memory.</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Action Games -->
+    <div class="category-section">
+        <h2 class="category-title">⚡ Action Games</h2>
+        <div class="games-grid action">
+            <a href="balloon-pop/index.html" class="game-card">
+                <div class="game-icon">🎈</div>
+                <div class="game-info">
+                    <div class="game-title">Balloon Pop</div>
+                    <div class="game-description">Pop colorful balloons as fast as you can! Test your speed and reflexes.</div>
+                </div>
+            </a>
+            
+            <a href="bubble-pop/index.html" class="game-card">
+                <div class="game-icon">🫧</div>
+                <div class="game-info">
+                    <div class="game-title">Bubble Pop</div>
+                    <div class="game-description">Pop bubbles in this relaxing game with smooth physics and particles.</div>
+                </div>
+            </a>
+            
+            <a href="catch-a-critter/index.html" class="game-card">
+                <div class="game-icon">🐛</div>
+                <div class="game-info">
+                    <div class="game-title">Catch a Critter</div>
+                    <div class="game-description">Quick reflexes needed! Catch the critters before they escape.</div>
+                </div>
+            </a>
+            
+            <a href="catch-the-stars/index.html" class="game-card">
+                <div class="game-icon">⭐</div>
+                <div class="game-info">
+                    <div class="game-title">Catch the Stars</div>
+                    <div class="game-description">Magical star-catching adventure with power-ups and achievements!</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Music Games -->
+    <div class="category-section">
+        <h2 class="category-title">🎵 Music Games</h2>
+        <div class="games-grid music">
+            <a href="animal-sounds/index.html" class="game-card">
+                <div class="game-icon">🐄</div>
+                <div class="game-info">
+                    <div class="game-title">Animal Sounds</div>
+                    <div class="game-description">Learn animal sounds and play matching games with farm animals!</div>
+                </div>
+            </a>
+            
+            <a href="animal-piano/index.html" class="game-card">
+                <div class="game-icon">🎹</div>
+                <div class="game-info">
+                    <div class="game-title">Animal Piano</div>
+                    <div class="game-description">Play piano with animal sounds! Multiple modes and song learning.</div>
+                </div>
+            </a>
+            
+            <a href="musical-drums/index.html" class="game-card">
+                <div class="game-icon">🥁</div>
+                <div class="game-info">
+                    <div class="game-title">Musical Drums</div>
+                    <div class="game-description">Interactive drum kit with recording and rhythm pattern training!</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Creative Games -->
+    <div class="category-section">
+        <h2 class="category-title">🎨 Creative Games</h2>
+        <div class="games-grid creative">
+            <a href="drawing-canvas/index.html" class="game-card">
+                <div class="game-icon">✏️</div>
+                <div class="game-info">
+                    <div class="game-title">Drawing Canvas</div>
+                    <div class="game-description">Free-form drawing with colors, brushes, and creative tools.</div>
+                </div>
+            </a>
+            
+            <a href="paint-and-draw/index.html" class="game-card">
+                <div class="game-icon">🖌️</div>
+                <div class="game-info">
+                    <div class="game-title">Paint & Draw</div>
+                    <div class="game-description">Advanced painting app with tools, stamps, templates, and effects!</div>
+                </div>
+            </a>
+            
+            <a href="dress-up-doll/index.html" class="game-card">
+                <div class="game-icon">👗</div>
+                <div class="game-info">
+                    <div class="game-title">Dress-Up Doll</div>
+                    <div class="game-description">Customize characters with clothes, accessories, and seasonal themes!</div>
+                </div>
+            </a>
+        </div>
     </div>
     
     <script>
