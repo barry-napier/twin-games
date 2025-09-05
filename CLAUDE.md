@@ -8,25 +8,31 @@ Twin Games Collection is a Progressive Web Application (PWA) featuring education
 ## Architecture
 
 ### Two Game Development Patterns
-1. **Self-contained** (24 games): Single `index.html` with embedded CSS/JavaScript (357-1835 lines)
-2. **Modular** (bubble-pop only): Separate HTML, CSS, JavaScript files with local manifest
+1. **Self-contained** (13 games): Single `index.html` with embedded CSS/JavaScript
+2. **Modular** (1 game - bubble-pop): Separate HTML, CSS, JS files with local manifest
 
 ### Key Files
 - `index.html` - Main game launcher with 4 featured games grid
 - `sw.js` - Service worker for offline functionality (caches main games)
 - `manifest.json` - PWA configuration for app-like experience
 - `icon-192.svg`, `icon-512.svg` - App icons
-- Individual game directories - Standalone games at root level
+- Game directories at root level (25 total, 14 implemented, 11 unimplemented)
 
-### Current Game Status
-**Featured/Cached Games:**
-- marble-maze - Device tilt marble navigation
-- rhythm-tap - Music rhythm game
-- color-chain - Chain reaction strategy
-- space-defender - Tower defense in space
+### Game Implementation Status
 
-**Additional Games** (21 directories in various completion states):
-alphabet-adventure, animal-sounds, balloon-pop, bubble-pop, catch-a-critter, color-match, drawing-canvas, memory-cards, number-counting, shape-puzzle, and others
+**Implemented Games (14):**
+- **Featured/Cached**: marble-maze, rhythm-tap, color-chain, space-defender
+- **Additional**: alphabet-adventure, animal-sounds, balloon-pop, bubble-pop, catch-a-critter, color-match, drawing-canvas, memory-cards, number-counting, shape-puzzle
+
+**Unimplemented Directories (11):**
+animal-memory, animal-memory-match, animal-piano, color-mixing-lab, counting-cookies, dress-up-doll, musical-drums, paint-and-draw, shape-sorter, catch-the-stars, story-sequencer
+
+### Technology Usage
+- **Canvas-based**: space-defender, drawing-canvas, marble-maze
+- **DOM-based**: Most puzzle/educational games
+- **External libraries**: Only marble-maze uses canvas-confetti
+- **Theme support**: marble-maze (full), bubble-pop (partial)
+- **PWA features**: bubble-pop (full manifest), main app level
 
 ## Development Commands
 No build process - static site. For development:
@@ -57,20 +63,40 @@ No build process - static site. For development:
 - Visual feedback and smooth animations
 - Clear game states and win/lose conditions
 - Reset/restart functionality
-- Theme support for Sarah/Finn personalization (when appropriate)
+- Child-friendly design: bright colors, Comic Sans MS font, celebration animations
+
+### Special Features (When Appropriate)
+- **Theme support**: Sarah (pink/purple) and Finn (dark/cyan) themes using CSS variables
+- **Educational audio**: Speech synthesis for learning games (see number-counting)
+- **Device features**: Orientation/tilt controls (see marble-maze)
+- **Keyboard controls**: For desktop gameplay (see rhythm-tap: D,F,J,K keys)
 
 ### Code Patterns
 ```javascript
-// Game loop pattern
+// Game loop pattern (for Canvas games)
 function gameLoop() {
     update();
     render();
     requestAnimationFrame(gameLoop);
 }
 
-// Touch/mouse handling
-element.addEventListener('touchstart', handleStart);
+// Touch/mouse handling pattern
+element.addEventListener('touchstart', handleStart, {passive: false});
 element.addEventListener('mousedown', handleStart);
+element.addEventListener('touchmove', handleMove, {passive: false});
+element.addEventListener('mousemove', handleMove);
+
+// Theme implementation (CSS variables)
+:root[data-theme="sarah"] {
+    --bg-1: #ff6ec7;
+    --bg-2: #c77dff;
+    --accent: #ff69b4;
+}
+:root[data-theme="finn"] {
+    --bg-1: #0a0e27;
+    --bg-2: #1a1f3a;
+    --accent: #00ffff;
+}
 ```
 
 ### Performance Best Practices
