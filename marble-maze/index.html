@@ -563,6 +563,7 @@
         <label><input type="checkbox" id="invertX" /> Invert X</label>
         <label><input type="checkbox" id="invertY" /> Invert Y</label>
         <label><input type="checkbox" id="showDebug" /> Debug</label>
+        <label><input type="checkbox" id="musicToggle" checked /> Music</label>
       </div>
       
       <div class="button-row">
@@ -619,6 +620,7 @@
       const hardBtn = document.getElementById("hardBtn");
       const settingsToggle = document.getElementById("settingsToggle");
       const speedControls = document.getElementById("speedControls");
+      const musicToggle = document.getElementById("musicToggle");
 
       // Game variables
       let walls = [];
@@ -1119,6 +1121,11 @@
       async function startGame() {
         settingsToggle.style.display = "flex";
         levelIndicator.style.display = "block";
+        
+        // Start theme music
+        if (musicPlaying) {
+          startMusic();
+        }
 
         // Generate the first maze
         level = 1;
@@ -1183,6 +1190,170 @@
       settingsToggle.addEventListener("click", () => {
         settingsToggle.classList.toggle("active");
         speedControls.classList.toggle("show");
+      });
+      
+      // Stop music when page unloads
+      window.addEventListener('beforeunload', () => {
+        stopMusic();
+      });
+      
+      // Music System
+      let audioContext = null;
+      let musicInterval = null;
+      let currentBeat = 0;
+      let musicPlaying = true;
+      
+      function initAudio() {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+      
+      function playNote(frequency, duration, volume = 0.1, type = 'square') {
+        if (!audioContext || !musicPlaying) return;
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        
+        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+      }
+      
+      // Sarah's theme - Upbeat, happy 80s arcade
+      function playSarahMusic() {
+        const melody = [
+          { note: 523.25, duration: 0.2 }, // C5
+          { note: 659.25, duration: 0.2 }, // E5
+          { note: 783.99, duration: 0.2 }, // G5
+          { note: 659.25, duration: 0.2 }, // E5
+          { note: 523.25, duration: 0.2 }, // C5
+          { note: 659.25, duration: 0.2 }, // E5
+          { note: 783.99, duration: 0.4 }, // G5
+          { note: 0, duration: 0.2 },      // Rest
+          { note: 587.33, duration: 0.2 }, // D5
+          { note: 698.46, duration: 0.2 }, // F5
+          { note: 880.00, duration: 0.2 }, // A5
+          { note: 698.46, duration: 0.2 }, // F5
+        ];
+        
+        const bass = [
+          130.81, // C3
+          146.83, // D3
+          164.81, // E3
+          174.61, // F3
+        ];
+        
+        // Play melody note
+        const melodyNote = melody[currentBeat % melody.length];
+        if (melodyNote.note > 0) {
+          playNote(melodyNote.note, melodyNote.duration, 0.12, 'square');
+          playNote(melodyNote.note * 2, melodyNote.duration, 0.05, 'triangle'); // Harmony
+        }
+        
+        // Play bass every 2 beats
+        if (currentBeat % 2 === 0) {
+          const bassNote = bass[Math.floor(currentBeat / 4) % bass.length];
+          playNote(bassNote, 0.4, 0.15, 'sawtooth');
+        }
+        
+        // Percussion
+        if (currentBeat % 4 === 0) {
+          playNote(60, 0.05, 0.2, 'square'); // Kick
+        }
+        if (currentBeat % 4 === 2) {
+          playNote(200, 0.02, 0.1, 'square'); // Snare
+        }
+        
+        currentBeat++;
+      }
+      
+      // Finn's theme - Dark, cyberpunk synth
+      function playFinnMusic() {
+        const synthLine = [
+          { note: 146.83, duration: 0.3 }, // D3
+          { note: 146.83, duration: 0.3 }, // D3
+          { note: 174.61, duration: 0.3 }, // F3
+          { note: 146.83, duration: 0.3 }, // D3
+          { note: 130.81, duration: 0.3 }, // C3
+          { note: 130.81, duration: 0.3 }, // C3
+          { note: 116.54, duration: 0.3 }, // Bb2
+          { note: 130.81, duration: 0.3 }, // C3
+        ];
+        
+        const arp = [
+          293.66, // D4
+          349.23, // F4
+          440.00, // A4
+          523.25, // C5
+        ];
+        
+        // Play synth bass
+        const synthNote = synthLine[currentBeat % synthLine.length];
+        playNote(synthNote.note, synthNote.duration, 0.2, 'sawtooth');
+        playNote(synthNote.note * 0.5, synthNote.duration, 0.15, 'sine'); // Sub bass
+        
+        // Play arpeggiated lead
+        if (currentBeat % 2 === 0) {
+          const arpNote = arp[currentBeat % arp.length];
+          playNote(arpNote, 0.1, 0.08, 'square');
+          playNote(arpNote * 1.5, 0.1, 0.04, 'triangle'); // Detune effect
+        }
+        
+        // Cyberpunk percussion
+        if (currentBeat % 8 === 0) {
+          playNote(40, 0.1, 0.3, 'sine'); // Deep kick
+        }
+        if (currentBeat % 8 === 4) {
+          playNote(150, 0.05, 0.2, 'square'); // Snare
+        }
+        if (currentBeat % 2 === 1) {
+          playNote(800, 0.01, 0.05, 'square'); // Hi-hat
+        }
+        
+        currentBeat++;
+      }
+      
+      function startMusic() {
+        if (!musicPlaying) return;
+        
+        initAudio();
+        stopMusic();
+        
+        const theme = document.body.getAttribute("data-theme");
+        const tempo = theme === "sarah" ? 150 : 120; // BPM
+        const interval = 60000 / (tempo * 4); // Convert to ms per 16th note
+        
+        if (theme === "sarah") {
+          musicInterval = setInterval(playSarahMusic, interval);
+        } else if (theme === "finn") {
+          musicInterval = setInterval(playFinnMusic, interval);
+        }
+      }
+      
+      function stopMusic() {
+        if (musicInterval) {
+          clearInterval(musicInterval);
+          musicInterval = null;
+        }
+        currentBeat = 0;
+      }
+      
+      musicToggle.addEventListener('change', (e) => {
+        musicPlaying = e.target.checked;
+        if (musicPlaying) {
+          startMusic();
+        } else {
+          stopMusic();
+        }
       });
       
       // Confetti celebration function
