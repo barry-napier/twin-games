@@ -1107,6 +1107,11 @@
       speedEl.addEventListener("input", () => {
         speedScale = parseFloat(speedEl.value);
         speedValEl.textContent = speedScale.toFixed(1);
+        
+        // Restart music with new tempo if playing
+        if (musicPlaying) {
+          startMusic();
+        }
       });
 
       showDebugEl.addEventListener("change", () => {
@@ -1364,8 +1369,9 @@
         stopMusic();
         
         const theme = document.body.getAttribute("data-theme");
-        const tempo = theme === "sarah" ? 150 : 120; // BPM
-        const interval = 60000 / (tempo * 4); // Convert to ms per 16th note
+        const baseTempo = theme === "sarah" ? 150 : 120; // Base BPM
+        const adjustedTempo = baseTempo * speedScale; // Adjust by speed multiplier
+        const interval = 60000 / (adjustedTempo * 4); // Convert to ms per 16th note
         
         if (theme === "sarah") {
           musicInterval = setInterval(playSarahMusic, interval);
