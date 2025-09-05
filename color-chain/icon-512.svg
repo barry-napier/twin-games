@@ -1,0 +1,57 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="512" height="512" fill="url(#bg512)" rx="100"/>
+  
+  <!-- Grid of colored dots -->
+  <g filter="url(#glow)">
+    <!-- Row 1 -->
+    <circle cx="128" cy="128" r="45" fill="#ff6b6b"/>
+    <circle cx="256" cy="128" r="45" fill="#4ecdc4"/>
+    <circle cx="384" cy="128" r="45" fill="#95e77e"/>
+    
+    <!-- Row 2 -->
+    <circle cx="128" cy="256" r="45" fill="#ffd93d"/>
+    <circle cx="256" cy="256" r="60" fill="#a55eea">
+      <animate attributeName="r" values="60;70;60" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="384" cy="256" r="45" fill="#ff6b6b"/>
+    
+    <!-- Row 3 -->
+    <circle cx="128" cy="384" r="45" fill="#4ecdc4"/>
+    <circle cx="256" cy="384" r="45" fill="#95e77e"/>
+    <circle cx="384" cy="384" r="45" fill="#ffd93d"/>
+  </g>
+  
+  <!-- Chain reaction particles -->
+  <g opacity="0.9">
+    <circle cx="256" cy="256" r="10" fill="#fff">
+      <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0,0; -50,-50; 0,0" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="256" cy="256" r="10" fill="#fff">
+      <animate attributeName="opacity" values="1;0;1" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0,0; 50,-50; 0,0" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="256" cy="256" r="10" fill="#fff">
+      <animate attributeName="opacity" values="1;0;1" dur="2s" begin="1s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0,0; -50,50; 0,0" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="256" cy="256" r="10" fill="#fff">
+      <animate attributeName="opacity" values="1;0;1" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0,0; 50,50; 0,0" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

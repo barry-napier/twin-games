@@ -1,0 +1,35 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="192" height="192" fill="url(#bg)" rx="40"/>
+  
+  <!-- Colored dots in chain pattern -->
+  <circle cx="50" cy="50" r="20" fill="#ff6b6b" opacity="0.9"/>
+  <circle cx="96" cy="50" r="20" fill="#4ecdc4" opacity="0.9"/>
+  <circle cx="142" cy="50" r="20" fill="#95e77e" opacity="0.9"/>
+  
+  <circle cx="50" cy="96" r="20" fill="#ffd93d" opacity="0.9"/>
+  <circle cx="96" cy="96" r="25" fill="#a55eea" opacity="1">
+    <animate attributeName="r" values="25;30;25" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="142" cy="96" r="20" fill="#ff6b6b" opacity="0.9"/>
+  
+  <circle cx="50" cy="142" r="20" fill="#4ecdc4" opacity="0.9"/>
+  <circle cx="96" cy="142" r="20" fill="#95e77e" opacity="0.9"/>
+  <circle cx="142" cy="142" r="20" fill="#ffd93d" opacity="0.9"/>
+  
+  <!-- Particle effects -->
+  <circle cx="96" cy="96" r="5" fill="#fff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1.5s" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="translate" values="0,0; -20,-20; 0,0" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="96" cy="96" r="5" fill="#fff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+    <animateTransform attributeName="transform" type="translate" values="0,0; 20,-20; 0,0" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>
