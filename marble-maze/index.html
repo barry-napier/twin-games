@@ -577,6 +577,7 @@
         <label><input type="checkbox" id="invertY" /> Invert Y</label>
         <label><input type="checkbox" id="showDebug" /> Debug</label>
         <label><input type="checkbox" id="musicToggle" checked /> Music</label>
+        <label><input type="checkbox" id="soundToggle" checked /> Sounds</label>
       </div>
       
       <div class="button-row">
@@ -634,6 +635,7 @@
       const settingsToggle = document.getElementById("settingsToggle");
       const speedControls = document.getElementById("speedControls");
       const musicToggle = document.getElementById("musicToggle");
+      const soundToggle = document.getElementById("soundToggle");
 
       // Game variables
       let walls = [];
@@ -1000,6 +1002,9 @@
         
         // Check bomb collision
         if (checkBombCollision()) {
+          // Play explosion sound
+          playBombSound();
+          
           // Flash effect
           maze.classList.add("bomb-hit");
           setTimeout(() => maze.classList.remove("bomb-hit"), 500);
@@ -1012,6 +1017,18 @@
           setTimeout(() => {
             hint.textContent = `Level ${level}: Avoid the bombs! Reach the green goal!`;
           }, 2000);
+        }
+        
+        // Movement sound
+        const speed = Math.sqrt(vx * vx + vy * vy);
+        if (speed > 0.1 && soundsEnabled) {
+          if (!rollingSound) {
+            initAudio();
+            playRollingSound();
+          }
+          lastMovementTime = Date.now();
+        } else if (rollingSound && Date.now() - lastMovementTime > 100) {
+          stopRollingSound();
         }
 
         // Debug display
@@ -1035,6 +1052,7 @@
         ) {
           level++;
           levelDisplay.textContent = level;
+          playVictorySound();
           celebrateWithFireworks();
           setTimeout(() => {
             generateNewMaze();
@@ -1051,6 +1069,7 @@
         vy = 0;
         marble.style.left = x + "%";
         marble.style.top = y + "%";
+        stopRollingSound();
       }
 
       function generateNewMaze() {
@@ -1210,11 +1229,14 @@
         stopMusic();
       });
       
-      // Music System
+      // Audio System
       let audioContext = null;
       let musicInterval = null;
       let currentBeat = 0;
       let musicPlaying = true;
+      let soundsEnabled = true;
+      let rollingSound = null;
+      let lastMovementTime = 0;
       
       function initAudio() {
         if (!audioContext) {
@@ -1368,6 +1390,127 @@
           stopMusic();
         }
       });
+      
+      soundToggle.addEventListener('change', (e) => {
+        soundsEnabled = e.target.checked;
+        if (!soundsEnabled && rollingSound) {
+          stopRollingSound();
+        }
+      });
+      
+      // Sound Effects
+      function playRollingSound() {
+        if (!audioContext || !soundsEnabled) return;
+        
+        // Create continuous rolling sound
+        if (!rollingSound) {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          const filter = audioContext.createBiquadFilter();
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.value = 100 + Math.random() * 50;
+          
+          filter.type = 'lowpass';
+          filter.frequency.value = 300;
+          
+          oscillator.connect(filter);
+          filter.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          gainNode.gain.value = 0.02;
+          
+          oscillator.start();
+          rollingSound = { oscillator, gainNode };
+        }
+      }
+      
+      function stopRollingSound() {
+        if (rollingSound) {
+          rollingSound.gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+          rollingSound.oscillator.stop(audioContext.currentTime + 0.1);
+          rollingSound = null;
+        }
+      }
+      
+      function playBombSound() {
+        if (!audioContext || !soundsEnabled) return;
+        initAudio();
+        
+        // Explosion sound - noise burst with pitch sweep
+        const duration = 0.5;
+        const osc = audioContext.createOscillator();
+        const noise = audioContext.createBufferSource();
+        const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const noiseData = noiseBuffer.getChannelData(0);
+        
+        // Generate white noise
+        for (let i = 0; i < noiseData.length; i++) {
+          noiseData[i] = Math.random() * 2 - 1;
+        }
+        
+        noise.buffer = noiseBuffer;
+        
+        const noiseGain = audioContext.createGain();
+        const oscGain = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+        
+        // Setup explosion characteristics
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(3000, audioContext.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + duration);
+        
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(audioContext.destination);
+        
+        // Boom sound
+        osc.frequency.setValueAtTime(150, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(20, audioContext.currentTime + duration);
+        osc.type = 'sine';
+        
+        osc.connect(oscGain);
+        oscGain.connect(audioContext.destination);
+        
+        // Envelope
+        noiseGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        
+        oscGain.gain.setValueAtTime(0.5, audioContext.currentTime);
+        oscGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        
+        noise.start();
+        osc.start();
+        noise.stop(audioContext.currentTime + duration);
+        osc.stop(audioContext.currentTime + duration);
+      }
+      
+      function playVictorySound() {
+        if (!audioContext || !soundsEnabled) return;
+        initAudio();
+        
+        const theme = document.body.getAttribute("data-theme");
+        
+        // Victory fanfare
+        const notes = theme === "sarah" ? 
+          [523.25, 659.25, 783.99, 1046.50] : // C, E, G, C (major)
+          [440.00, 554.37, 659.25, 880.00];   // A, C#, E, A (minor for Finn)
+        
+        notes.forEach((freq, i) => {
+          setTimeout(() => {
+            playNote(freq, 0.2, 0.2, 'square');
+            playNote(freq * 0.5, 0.2, 0.1, 'sine'); // Bass
+            playNote(freq * 2, 0.2, 0.05, 'triangle'); // Sparkle
+          }, i * 100);
+        });
+        
+        // Final chord
+        setTimeout(() => {
+          notes.forEach(freq => {
+            playNote(freq, 0.5, 0.15, 'square');
+          });
+        }, 400);
+      }
       
       // Register Service Worker for PWA
       if ('serviceWorker' in navigator) {
