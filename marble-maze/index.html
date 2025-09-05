@@ -63,6 +63,19 @@
         --marble-2: #3da9fc;
         --marble-3: #1856c9;
       }
+      
+      [data-theme="daddy"] {
+        --bg-1: #1a1a2e;
+        --bg-2: #0f3460;
+        --accent: #c9a961;
+        --wall: #16213e;
+        --goal: #e94560;
+        --panel: rgba(26, 26, 46, 0.95);
+        --text: #c9a961;
+        --marble-1: #c9a961;
+        --marble-2: #b8860b;
+        --marble-3: #8b6914;
+      }
       * {
         box-sizing: border-box;
       }
@@ -203,6 +216,50 @@
         background: linear-gradient(135deg, #ff69b4, #da70d6);
       }
       
+      [data-theme="daddy"] .settings-toggle {
+        background: linear-gradient(135deg, #c9a961, #8b6914);
+        color: #1a1a2e;
+      }
+      
+      [data-theme="daddy"] .speed-controls {
+        background: rgba(26, 26, 46, 0.98);
+        border: 2px solid #c9a961;
+        color: #c9a961;
+      }
+      
+      [data-theme="daddy"] .speed-controls label {
+        color: #c9a961;
+        font-weight: 600;
+      }
+      
+      [data-theme="daddy"] .speed-controls button {
+        background: linear-gradient(135deg, #c9a961, #8b6914);
+        color: #1a1a2e;
+        border: none;
+        font-weight: 700;
+      }
+      
+      [data-theme="daddy"] .level-indicator {
+        background: rgba(26, 26, 46, 0.98);
+        border: 2px solid #c9a961;
+        color: #c9a961;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      
+      [data-theme="daddy"] .controls,
+      [data-theme="daddy"] .hint,
+      [data-theme="daddy"] .theme-selector,
+      [data-theme="daddy"] .difficulty-selector {
+        background: rgba(26, 26, 46, 0.98);
+        border: 2px solid #c9a961;
+        color: #c9a961;
+      }
+      
+      [data-theme="daddy"] .bomb {
+        filter: sepia(0.5) hue-rotate(30deg);
+      }
+      
       .level-indicator {
         position: fixed;
         top: 20px;
@@ -314,6 +371,34 @@
       
       [data-theme="sarah"] .maze {
         background: linear-gradient(135deg, #ffe0f0 0%, #fff5f9 50%, #fce4ec 100%);
+      }
+      
+      [data-theme="daddy"] .maze {
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+        border-color: #c9a961;
+        box-shadow: 0 0 40px rgba(201, 169, 97, 0.3), 0 20px 40px rgba(0, 0, 0, 0.6);
+      }
+      
+      [data-theme="daddy"] .wall {
+        background: linear-gradient(135deg, #16213e, #0f3460);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      
+      [data-theme="daddy"] .goal {
+        background: radial-gradient(circle, #e94560, #c71e3b);
+        box-shadow: 0 0 30px rgba(233, 69, 96, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.2);
+      }
+      
+      [data-theme="daddy"] .marble {
+        background: radial-gradient(
+          circle at 30% 30%,
+          var(--marble-1),
+          var(--marble-2) 60%,
+          var(--marble-3) 100%
+        );
+        box-shadow: inset 0 4px 10px rgba(255, 215, 0, 0.4),
+          0 0 25px rgba(201, 169, 97, 0.5),
+          0 8px 20px rgba(0, 0, 0, 0.4);
       }
 
       .wall {
@@ -477,6 +562,15 @@
         text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
       }
       
+      .theme-btn.daddy {
+        background: linear-gradient(135deg, #1a1a2e, #c9a961);
+        color: #c9a961;
+        border: 2px solid #c9a961;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      
       [data-theme="finn"] .controls,
       [data-theme="finn"] .hint,
       [data-theme="finn"] .theme-selector,
@@ -545,6 +639,7 @@
       <div style="font-weight: 700; font-size: 20px; width: 100%; text-align: center;">Choose Your Mode:</div>
       <button class="theme-btn sarah" id="sarahBtn" title="Sarah Mode - Pink & Purple Theme">🌸 Sarah Mode</button>
       <button class="theme-btn finn" id="finnBtn" title="Finn Mode - Cyberpunk Theme">🤖 Finn Mode</button>
+      <button class="theme-btn daddy" id="daddyBtn" title="Daddy Mode - Sophisticated Theme">🎩 Daddy Mode</button>
     </div>
     
     <div class="difficulty-selector" id="difficultySelector" style="display: none;">
@@ -628,6 +723,7 @@
       const themeSelector = document.getElementById("themeSelector");
       const sarahBtn = document.getElementById("sarahBtn");
       const finnBtn = document.getElementById("finnBtn");
+      const daddyBtn = document.getElementById("daddyBtn");
       const difficultySelector = document.getElementById("difficultySelector");
       const easyBtn = document.getElementById("easyBtn");
       const mediumBtn = document.getElementById("mediumBtn");
@@ -1277,6 +1373,14 @@
         saveSettings();
       });
       
+      daddyBtn.addEventListener("click", () => {
+        document.body.setAttribute("data-theme", "daddy");
+        themeSelector.style.display = "none";
+        difficultySelector.style.display = "flex";
+        hint.textContent = "Daddy Mode activated! 🎩 Choose your difficulty level, champ!";
+        saveSettings();
+      });
+      
       // Difficulty selection - starts game immediately
       easyBtn.addEventListener("click", async () => {
         setDifficulty("easy");
@@ -1405,6 +1509,60 @@
         currentBeat++;
       }
       
+      // Daddy's theme - Smooth jazz lounge
+      function playDaddyMusic() {
+        const jazzChords = [
+          { root: 261.63, third: 329.63, fifth: 392.00, seventh: 466.16 }, // Cmaj7
+          { root: 220.00, third: 277.18, fifth: 329.63, seventh: 392.00 }, // Am7
+          { root: 293.66, third: 369.99, fifth: 440.00, seventh: 523.25 }, // Dm7
+          { root: 196.00, third: 246.94, fifth: 293.66, seventh: 349.23 }, // G7
+        ];
+        
+        const bassLine = [
+          130.81, // C2
+          110.00, // A2
+          146.83, // D2
+          98.00,  // G2
+        ];
+        
+        // Play jazzy chord
+        const chord = jazzChords[Math.floor(currentBeat / 8) % jazzChords.length];
+        if (currentBeat % 4 === 0) {
+          playNote(chord.root, 0.4, 0.08, 'sine');
+          playNote(chord.third, 0.4, 0.06, 'sine');
+          playNote(chord.fifth, 0.4, 0.06, 'sine');
+          playNote(chord.seventh, 0.4, 0.05, 'triangle');
+        }
+        
+        // Walking bass
+        if (currentBeat % 2 === 0) {
+          const bassNote = bassLine[currentBeat % bassLine.length];
+          playNote(bassNote, 0.3, 0.12, 'sine');
+          playNote(bassNote * 2, 0.3, 0.04, 'triangle');
+        }
+        
+        // Smooth lead melody
+        if (currentBeat % 8 === 4) {
+          const melodyNotes = [523.25, 659.25, 587.33, 440.00];
+          const note = melodyNotes[Math.floor(currentBeat / 8) % melodyNotes.length];
+          playNote(note, 0.6, 0.07, 'sine');
+          playNote(note * 1.01, 0.6, 0.03, 'sine'); // Slight detune for richness
+        }
+        
+        // Soft brushes on drums
+        if (currentBeat % 8 === 0) {
+          playNote(60, 0.08, 0.15, 'sine'); // Soft kick
+        }
+        if (currentBeat % 8 === 4) {
+          playNote(200, 0.02, 0.05, 'sawtooth'); // Brush snare
+        }
+        if (currentBeat % 2 === 1) {
+          playNote(8000, 0.005, 0.02, 'square'); // Soft hi-hat
+        }
+        
+        currentBeat++;
+      }
+      
       // Finn's theme - Dark, cyberpunk synth
       function playFinnMusic() {
         const synthLine = [
@@ -1458,7 +1616,17 @@
         stopMusic();
         
         const theme = document.body.getAttribute("data-theme");
-        const baseTempo = theme === "sarah" ? 150 : 120; // Base BPM
+        let baseTempo;
+        if (theme === "sarah") {
+          baseTempo = 150;
+        } else if (theme === "finn") {
+          baseTempo = 120;
+        } else if (theme === "daddy") {
+          baseTempo = 90; // Smooth and relaxed
+        } else {
+          baseTempo = 120;
+        }
+        
         const adjustedTempo = baseTempo * speedScale; // Adjust by speed multiplier
         const interval = 60000 / (adjustedTempo * 4); // Convert to ms per 16th note
         
@@ -1466,6 +1634,8 @@
           musicInterval = setInterval(playSarahMusic, interval);
         } else if (theme === "finn") {
           musicInterval = setInterval(playFinnMusic, interval);
+        } else if (theme === "daddy") {
+          musicInterval = setInterval(playDaddyMusic, interval);
         }
       }
       
@@ -1589,22 +1759,35 @@
         const theme = document.body.getAttribute("data-theme");
         
         // Victory fanfare
-        const notes = theme === "sarah" ? 
-          [523.25, 659.25, 783.99, 1046.50] : // C, E, G, C (major)
-          [440.00, 554.37, 659.25, 880.00];   // A, C#, E, A (minor for Finn)
+        let notes;
+        if (theme === "sarah") {
+          notes = [523.25, 659.25, 783.99, 1046.50]; // C, E, G, C (major)
+        } else if (theme === "finn") {
+          notes = [440.00, 554.37, 659.25, 880.00]; // A, C#, E, A (minor)
+        } else if (theme === "daddy") {
+          notes = [261.63, 329.63, 392.00, 523.25]; // C, E, G, C with jazz voicing
+        } else {
+          notes = [523.25, 659.25, 783.99, 1046.50];
+        }
         
         notes.forEach((freq, i) => {
           setTimeout(() => {
-            playNote(freq, 0.2, 0.2, 'square');
+            const waveType = theme === "daddy" ? 'sine' : 'square';
+            playNote(freq, 0.2, 0.2, waveType);
             playNote(freq * 0.5, 0.2, 0.1, 'sine'); // Bass
-            playNote(freq * 2, 0.2, 0.05, 'triangle'); // Sparkle
+            if (theme === "daddy") {
+              playNote(freq * 1.5, 0.2, 0.03, 'sine'); // Jazz seventh
+            } else {
+              playNote(freq * 2, 0.2, 0.05, 'triangle'); // Sparkle
+            }
           }, i * 100);
         });
         
         // Final chord
         setTimeout(() => {
           notes.forEach(freq => {
-            playNote(freq, 0.5, 0.15, 'square');
+            const waveType = theme === "daddy" ? 'sine' : 'square';
+            playNote(freq, 0.5, 0.15, waveType);
           });
         }, 400);
       }
@@ -1627,6 +1810,8 @@
           colors = ["#ff69b4", "#da70d6", "#ff1493", "#ffc0cb", "#ffb6c1"];
         } else if (theme === "finn") {
           colors = ["#00ffff", "#00ff00", "#0080ff", "#1e3a5f", "#003d5c"];
+        } else if (theme === "daddy") {
+          colors = ["#c9a961", "#ffd700", "#b8860b", "#daa520", "#f4a460"];
         } else {
           colors = ["#7f5af0", "#2cb67d", "#ff8906", "#3da9fc", "#ef4565"];
         }
