@@ -644,6 +644,73 @@
       let marbleSize = 8; // Will change based on difficulty
       let level = 1;
       let difficulty = "easy";
+      
+      // Settings Storage
+      const STORAGE_KEY = 'marbleMazeSettings';
+      
+      function saveSettings() {
+        const settings = {
+          speed: speedScale,
+          invertX: invertXEl.checked,
+          invertY: invertYEl.checked,
+          showDebug: showDebugEl.checked,
+          music: musicPlaying,
+          sounds: soundsEnabled,
+          theme: document.body.getAttribute('data-theme'),
+          difficulty: difficulty,
+          level: level
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      }
+      
+      function loadSettings() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            const settings = JSON.parse(saved);
+            
+            // Apply saved settings
+            if (settings.speed !== undefined) {
+              speedScale = settings.speed;
+              speedEl.value = settings.speed;
+              speedValEl.textContent = settings.speed.toFixed(1);
+            }
+            
+            if (settings.invertX !== undefined) {
+              invertXEl.checked = settings.invertX;
+            }
+            
+            if (settings.invertY !== undefined) {
+              invertYEl.checked = settings.invertY;
+            }
+            
+            if (settings.showDebug !== undefined) {
+              showDebugEl.checked = settings.showDebug;
+              debug.classList.toggle('show', settings.showDebug);
+            }
+            
+            if (settings.music !== undefined) {
+              musicPlaying = settings.music;
+              musicToggle.checked = settings.music;
+            }
+            
+            if (settings.sounds !== undefined) {
+              soundsEnabled = settings.sounds;
+              soundToggle.checked = settings.sounds;
+            }
+            
+            if (settings.level !== undefined) {
+              level = settings.level;
+              levelDisplay.textContent = level;
+            }
+            
+            return settings;
+          } catch (e) {
+            console.error('Failed to load settings:', e);
+          }
+        }
+        return null;
+      }
 
       // Marble position in %
       let x = 2;
@@ -1052,6 +1119,7 @@
         ) {
           level++;
           levelDisplay.textContent = level;
+          saveSettings(); // Save progress
           playVictorySound();
           celebrateWithFireworks();
           setTimeout(() => {
@@ -1112,11 +1180,17 @@
         if (musicPlaying) {
           startMusic();
         }
+        
+        saveSettings();
       });
 
       showDebugEl.addEventListener("change", () => {
         debug.classList.toggle("show", showDebugEl.checked);
+        saveSettings();
       });
+      
+      invertXEl.addEventListener("change", saveSettings);
+      invertYEl.addEventListener("change", saveSettings);
 
       resetBtn?.addEventListener("click", resetMarblePosition);
       newMazeBtn?.addEventListener("click", generateNewMaze);
@@ -1192,6 +1266,7 @@
         themeSelector.style.display = "none";
         difficultySelector.style.display = "flex";
         hint.textContent = "Sarah Mode activated! 🌸 Choose your difficulty level!";
+        saveSettings();
       });
       
       finnBtn.addEventListener("click", () => {
@@ -1199,6 +1274,7 @@
         themeSelector.style.display = "none";
         difficultySelector.style.display = "flex";
         hint.textContent = "Finn Mode activated! 🤖 Choose your difficulty level!";
+        saveSettings();
       });
       
       // Difficulty selection - starts game immediately
@@ -1206,6 +1282,7 @@
         setDifficulty("easy");
         difficultySelector.style.display = "none";
         hint.textContent = "Easy mode! 10x10 maze. Tilt to move!";
+        saveSettings();
         await startGame();
       });
       
@@ -1213,6 +1290,7 @@
         setDifficulty("medium");
         difficultySelector.style.display = "none";
         hint.textContent = "Medium mode! 15x15 maze. Tilt to move!";
+        saveSettings();
         await startGame();
       });
       
@@ -1220,6 +1298,7 @@
         setDifficulty("hard");
         difficultySelector.style.display = "none";
         hint.textContent = "Hard mode! 20x20 maze. Tilt to move!";
+        saveSettings();
         await startGame();
       });
       
@@ -1232,6 +1311,16 @@
       // Stop music when page unloads
       window.addEventListener('beforeunload', () => {
         stopMusic();
+      });
+      
+      // Load saved settings on startup
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedSettings = loadSettings();
+        
+        // If user has played before, show resume option
+        if (savedSettings && savedSettings.theme && savedSettings.difficulty) {
+          // You could add a "Resume Game" button here if desired
+        }
       });
       
       // Audio System
@@ -1395,6 +1484,7 @@
         } else {
           stopMusic();
         }
+        saveSettings();
       });
       
       soundToggle.addEventListener('change', (e) => {
@@ -1402,6 +1492,7 @@
         if (!soundsEnabled && rollingSound) {
           stopRollingSound();
         }
+        saveSettings();
       });
       
       // Sound Effects
