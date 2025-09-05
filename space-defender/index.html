@@ -5,16 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>Space Defender</title>
     
-    <!-- PWA Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Space Defender">
-    <meta name="theme-color" content="#000428">
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
     <style>
         * {
             margin: 0;
@@ -254,19 +244,19 @@
     <div id="towerMenu">
         <div class="tower-btn" data-type="laser">
             <div class="tower-icon">🔫</div>
-            <div class="tower-cost">50⚡</div>
+            <div class="tower-cost">60⚡</div>
         </div>
         <div class="tower-btn" data-type="missile">
             <div class="tower-icon">🚀</div>
-            <div class="tower-cost">100⚡</div>
+            <div class="tower-cost">120⚡</div>
         </div>
         <div class="tower-btn" data-type="plasma">
             <div class="tower-icon">⚡</div>
-            <div class="tower-cost">150⚡</div>
+            <div class="tower-cost">180⚡</div>
         </div>
         <div class="tower-btn" data-type="freeze">
             <div class="tower-icon">❄️</div>
-            <div class="tower-cost">75⚡</div>
+            <div class="tower-cost">90⚡</div>
         </div>
     </div>
     
@@ -340,35 +330,35 @@
         // Tower types
         const towerTypes = {
             laser: {
-                cost: 50,
-                damage: 10,
-                range: 150,
-                fireRate: 500,
+                cost: 60,
+                damage: 8,
+                range: 140,
+                fireRate: 600,
                 color: '#00ff00',
                 projectileSpeed: 15
             },
             missile: {
-                cost: 100,
-                damage: 30,
-                range: 200,
-                fireRate: 1500,
+                cost: 120,
+                damage: 25,
+                range: 180,
+                fireRate: 1800,
                 color: '#ff6600',
                 projectileSpeed: 8,
                 explosive: true
             },
             plasma: {
-                cost: 150,
-                damage: 5,
-                range: 120,
-                fireRate: 200,
+                cost: 180,
+                damage: 4,
+                range: 110,
+                fireRate: 250,
                 color: '#00ffff',
                 projectileSpeed: 20
             },
             freeze: {
-                cost: 75,
+                cost: 90,
                 damage: 2,
                 range: 100,
-                fireRate: 400,
+                fireRate: 500,
                 color: '#66ccff',
                 projectileSpeed: 10,
                 slowEffect: 0.3
@@ -378,33 +368,33 @@
         // Enemy types (balanced for better gameplay)
         const enemyTypes = {
             basic: {
-                health: 20,
-                speed: 1.2,
-                reward: 10,
+                health: 30,
+                speed: 1.5,
+                reward: 5,
                 color: '#ff0000',
                 size: 15,
                 icon: '👾'
             },
             fast: {
-                health: 15,
-                speed: 2.5,
-                reward: 15,
+                health: 20,
+                speed: 3.0,
+                reward: 7,
                 color: '#ffff00',
                 size: 12,
                 icon: '🛸'
             },
             tank: {
-                health: 60,
-                speed: 0.7,
-                reward: 25,
+                health: 80,
+                speed: 1.0,
+                reward: 12,
                 color: '#ff00ff',
                 size: 20,
                 icon: '🤖'
             },
             boss: {
-                health: 200,
-                speed: 0.4,
-                reward: 80,
+                health: 250,
+                speed: 0.6,
+                reward: 30,
                 color: '#ffffff',
                 size: 30,
                 icon: '👹'
@@ -771,7 +761,7 @@
             // Check wave completion
             if (enemies.length === 0 && waveEnemies.length === 0 && gameRunning) {
                 wave++;
-                energy += 50; // Wave completion bonus
+                energy += 20; // Wave completion bonus (reduced)
                 updateUI();
                 setTimeout(() => {
                     if (gameRunning) spawnWave();
@@ -925,8 +915,8 @@
             
             // Reset game state
             gameRunning = true;
-            energy = 150;
-            health = 20;
+            energy = 80; // Start with less energy
+            health = 15; // Less health for more challenge
             score = 0;
             kills = 0;
             wave = 1;
@@ -958,10 +948,6 @@
         // Start game loop
         gameLoop();
         
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
     </script>
 </body>
 </html>
