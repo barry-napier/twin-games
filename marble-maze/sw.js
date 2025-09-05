@@ -1,52 +1,18 @@
-const CACHE_NAME = 'marble-maze-v1';
-const urlsToCache = [
-  '/marble-maze/',
-  '/marble-maze/index.html',
-  '/marble-maze/manifest.json'
-];
+// Service Worker for PWA functionality
+// This minimal service worker enables the app to be installable
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).then(
-          response => {
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-            return response;
-          }
-        );
-      })
-  );
+  // Skip waiting to activate immediately
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+  // Claim all clients immediately
+  event.waitUntil(clients.claim());
+});
+
+// Handle fetch events by just returning network responses
+// This allows the app to be installable without complex caching
+self.addEventListener('fetch', event => {
+  event.respondWith(fetch(event.request));
 });
