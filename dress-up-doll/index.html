@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dress-Up Doll - Twin Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        h1 {
+            color: #ff6b9d;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: inherit;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .main-area {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            max-height: calc(100vh - 150px);
+        }
+
+        .doll-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .doll-stage {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .doll {
+            position: relative;
+            width: 200px;
+            height: 400px;
+        }
+
+        .doll-part {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .base-body {
+            width: 200px;
+            height: 400px;
+            z-index: 1;
+        }
+
+        .clothing-item {
+            position: absolute;
+            cursor: move;
+            transition: opacity 0.3s;
+        }
+
+        .clothing-item.worn {
+            cursor: default;
+        }
+
+        .clothing-item.dragging {
+            opacity: 0.7;
+            z-index: 1000;
+        }
+
+        .wardrobe {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 8px 15px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .category-tab.active {
+            background: #ff6b9d;
+            color: white;
+        }
+
+        .items-grid {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+            max-height: 400px;
+        }
+
+        .wardrobe-item {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .wardrobe-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .wardrobe-item:active {
+            cursor: grabbing;
+        }
+
+        .wardrobe-item svg {
+            width: 70%;
+            height: 70%;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .theme-btn {
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .theme-btn.active {
+            background: #feca57;
+            color: white;
+        }
+
+        .drop-zone {
+            position: absolute;
+            border: 2px dashed transparent;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+
+        .drop-zone.active {
+            border-color: #ff6b9d;
+            background: rgba(255, 107, 157, 0.1);
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            animation: celebrate 1s ease-out;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .color-picker {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .color-option {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .main-area {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .wardrobe {
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .doll-stage {
+                width: 250px;
+                height: 400px;
+            }
+
+            .doll {
+                width: 160px;
+                height: 320px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .controls {
+                gap: 5px;
+            }
+
+            button {
+                padding: 8px 15px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>👗 Dress-Up Doll 👠</h1>
+        <div class="theme-selector">
+            <button class="theme-btn active" data-theme="casual">Casual</button>
+            <button class="theme-btn" data-theme="formal">Formal</button>
+            <button class="theme-btn" data-theme="summer">Summer</button>
+            <button class="theme-btn" data-theme="winter">Winter</button>
+        </div>
+        <div class="controls">
+            <button id="randomOutfit">🎲 Random Outfit</button>
+            <button id="clearAll">🧹 Clear All</button>
+            <button id="saveOutfit">📸 Save Outfit</button>
+            <button id="mirrorToggle">🪞 Mirror</button>
+        </div>
+    </header>
+
+    <div class="main-area">
+        <div class="doll-container">
+            <div class="doll-stage" id="dollStage">
+                <div class="doll" id="doll">
+                    <!-- Base body will be drawn here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="wardrobe">
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="hats">👒 Hats</button>
+                <button class="category-tab" data-category="tops">👕 Tops</button>
+                <button class="category-tab" data-category="bottoms">👖 Bottoms</button>
+                <button class="category-tab" data-category="shoes">👟 Shoes</button>
+                <button class="category-tab" data-category="accessories">💎 Accessories</button>
+            </div>
+            <div class="items-grid" id="itemsGrid">
+                <!-- Wardrobe items will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio context for sound effects
+        let audioContext;
+        let soundEnabled = false;
+
+        // Initialize audio on first user interaction
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                soundEnabled = true;
+            }
+        }
+
+        // Play sound effect
+        function playSound(type) {
+            if (!soundEnabled || !audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'pickup':
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    break;
+                case 'drop':
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    break;
+                case 'complete':
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                    oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    break;
+                case 'click':
+                    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+                    break;
+            }
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // Clothing data structure
+        const clothingData = {
+            hats: [
+                { id: 'hat1', name: 'Baseball Cap', colors: ['#ff0000', '#0000ff', '#000000'], svg: '<svg viewBox="0 0 100 100"><path d="M20 40 Q50 30 80 40 L80 50 Q50 60 20 50 Z" fill="{color}"/><path d="M15 50 L85 50 L80 55 L20 55 Z" fill="{color}" opacity="0.8"/></svg>' },
+                { id: 'hat2', name: 'Sun Hat', colors: ['#ffeb3b', '#ff9800', '#8bc34a'], svg: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="45" rx="35" ry="15" fill="{color}"/><path d="M30 45 Q50 35 70 45 Q50 50 30 45" fill="{color}" opacity="0.8"/></svg>' },
+                { id: 'hat3', name: 'Beanie', colors: ['#9c27b0', '#3f51b5', '#607d8b'], svg: '<svg viewBox="0 0 100 100"><path d="M25 50 Q50 30 75 50 L75 60 Q50 70 25 60 Z" fill="{color}"/><circle cx="50" cy="35" r="5" fill="{color}" opacity="0.7"/></svg>' },
+                { id: 'hat4', name: 'Crown', colors: ['#ffd700', '#c0c0c0', '#cd7f32'], svg: '<svg viewBox="0 0 100 100"><path d="M20 50 L30 35 L40 45 L50 30 L60 45 L70 35 L80 50 L80 60 L20 60 Z" fill="{color}"/><circle cx="50" cy="45" r="3" fill="#ff0000"/></svg>' },
+                { id: 'hat5', name: 'Bow', colors: ['#ff69b4', '#ff1493', '#9370db'], svg: '<svg viewBox="0 0 100 100"><path d="M30 45 Q20 40 30 50 Q40 45 50 45 Q60 45 70 50 Q80 40 70 45 Q60 40 50 40 Q40 40 30 45" fill="{color}"/><rect x="45" y="42" width="10" height="6" rx="2" fill="{color}" opacity="0.8"/></svg>' }
+            ],
+            tops: [
+                { id: 'top1', name: 'T-Shirt', colors: ['#ff5722', '#2196f3', '#4caf50'], svg: '<svg viewBox="0 0 100 100"><path d="M30 40 L30 80 L70 80 L70 40 L60 35 L55 40 L45 40 L40 35 Z" fill="{color}"/><path d="M30 40 L20 45 L20 55 L30 50" fill="{color}"/><path d="M70 40 L80 45 L80 55 L70 50" fill="{color}"/></svg>' },
+                { id: 'top2', name: 'Dress', colors: ['#e91e63', '#9c27b0', '#00bcd4'], svg: '<svg viewBox="0 0 100 100"><path d="M35 40 L35 60 L30 90 L70 90 L65 60 L65 40 L55 35 L45 35 Z" fill="{color}"/><path d="M35 40 L30 43 L30 50 L35 47" fill="{color}"/><path d="M65 40 L70 43 L70 50 L65 47" fill="{color}"/></svg>' },
+                { id: 'top3', name: 'Tank Top', colors: ['#fff', '#000', '#ff9800'], svg: '<svg viewBox="0 0 100 100"><path d="M40 35 L40 80 L60 80 L60 35 L55 35 L50 40 L45 35 Z" fill="{color}"/></svg>' },
+                { id: 'top4', name: 'Hoodie', colors: ['#607d8b', '#795548', '#3f51b5'], svg: '<svg viewBox="0 0 100 100"><path d="M30 45 L30 85 L70 85 L70 45 L60 35 L55 40 L45 40 L40 35 Z" fill="{color}"/><path d="M30 45 L20 50 L20 60 L30 55" fill="{color}"/><path d="M70 45 L80 50 L80 60 L70 55" fill="{color}"/><path d="M40 35 Q50 30 60 35 L55 40 L45 40 Z" fill="{color}" opacity="0.8"/><rect x="45" y="55" width="10" height="20" rx="5" fill="{color}" opacity="0.9"/></svg>' },
+                { id: 'top5', name: 'Vest', colors: ['#8bc34a', '#ff5722', '#009688'], svg: '<svg viewBox="0 0 100 100"><path d="M35 40 L35 80 L45 80 L45 60 L50 65 L55 60 L55 80 L65 80 L65 40 L55 35 L45 35 Z" fill="{color}"/></svg>' }
+            ],
+            bottoms: [
+                { id: 'bottom1', name: 'Jeans', colors: ['#1976d2', '#37474f', '#000'], svg: '<svg viewBox="0 0 100 100"><path d="M35 30 L35 60 L30 90 L40 90 L45 60 L50 55 L55 60 L60 90 L70 90 L65 60 L65 30 Z" fill="{color}"/><line x1="50" y1="30" x2="50" y2="55" stroke="{color}" stroke-width="2" opacity="0.5"/></svg>' },
+                { id: 'bottom2', name: 'Skirt', colors: ['#ff69b4', '#9c27b0', '#ffeb3b'], svg: '<svg viewBox="0 0 100 100"><path d="M35 30 L30 70 L70 70 L65 30 Z" fill="{color}"/><path d="M35 50 L65 50" stroke="{color}" stroke-width="2" opacity="0.5"/></svg>' },
+                { id: 'bottom3', name: 'Shorts', colors: ['#03a9f4', '#ff9800', '#8bc34a'], svg: '<svg viewBox="0 0 100 100"><path d="M35 30 L35 50 L30 60 L40 60 L45 50 L50 45 L55 50 L60 60 L70 60 L65 50 L65 30 Z" fill="{color}"/></svg>' },
+                { id: 'bottom4', name: 'Pants', colors: ['#424242', '#795548', '#607d8b'], svg: '<svg viewBox="0 0 100 100"><path d="M37 30 L37 60 L35 90 L42 90 L45 60 L50 55 L55 60 L58 90 L65 90 L63 60 L63 30 Z" fill="{color}"/></svg>' },
+                { id: 'bottom5', name: 'Tutu', colors: ['#ff69b4', '#e91e63', '#ba68c8'], svg: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="35" rx="15" ry="5" fill="{color}"/><path d="M30 35 Q25 50 30 55 L35 50 Q35 55 40 55 L42 50 Q45 55 50 55 L50 50 Q55 55 60 55 L58 50 Q65 55 70 55 L70 50 Q75 50 70 35 Z" fill="{color}" opacity="0.8"/></svg>' }
+            ],
+            shoes: [
+                { id: 'shoe1', name: 'Sneakers', colors: ['#f44336', '#2196f3', '#fff'], svg: '<svg viewBox="0 0 100 100"><path d="M25 70 L25 80 L45 80 L48 70 L40 65 L30 65 Z" fill="{color}"/><path d="M55 70 L55 80 L75 80 L75 70 L70 65 L60 65 Z" fill="{color}"/><rect x="25" y="78" width="20" height="4" fill="#333"/><rect x="55" y="78" width="20" height="4" fill="#333"/></svg>' },
+                { id: 'shoe2', name: 'Boots', colors: ['#795548', '#000', '#8d6e63'], svg: '<svg viewBox="0 0 100 100"><path d="M28 60 L28 80 L42 80 L42 60 L38 55 L32 55 Z" fill="{color}"/><path d="M58 60 L58 80 L72 80 L72 60 L68 55 L62 55 Z" fill="{color}"/><rect x="28" y="78" width="14" height="4" fill="#333"/><rect x="58" y="78" width="14" height="4" fill="#333"/></svg>' },
+                { id: 'shoe3', name: 'Sandals', colors: ['#ffeb3b', '#8bc34a', '#ff9800'], svg: '<svg viewBox="0 0 100 100"><rect x="25" y="75" width="20" height="5" fill="{color}"/><rect x="55" y="75" width="20" height="5" fill="{color}"/><path d="M30 70 L30 75 M35 70 L35 75 M40 70 L40 75" stroke="{color}" stroke-width="2"/><path d="M60 70 L60 75 M65 70 L65 75 M70 70 L70 75" stroke="{color}" stroke-width="2"/></svg>' },
+                { id: 'shoe4', name: 'High Heels', colors: ['#ff1493', '#000', '#9c27b0'], svg: '<svg viewBox="0 0 100 100"><path d="M30 70 L30 75 L40 75 L42 80 L38 80 L28 80 L30 70" fill="{color}"/><path d="M60 70 L60 75 L70 75 L72 80 L68 80 L58 80 L60 70" fill="{color}"/></svg>' },
+                { id: 'shoe5', name: 'Slippers', colors: ['#ff69b4', '#03a9f4', '#9575cd'], svg: '<svg viewBox="0 0 100 100"><ellipse cx="35" cy="75" rx="10" ry="5" fill="{color}"/><ellipse cx="65" cy="75" rx="10" ry="5" fill="{color}"/><circle cx="32" cy="73" r="3" fill="{color}" opacity="0.7"/><circle cx="62" cy="73" r="3" fill="{color}" opacity="0.7"/></svg>' }
+            ],
+            accessories: [
+                { id: 'acc1', name: 'Necklace', colors: ['#ffd700', '#c0c0c0', '#cd7f32'], svg: '<svg viewBox="0 0 100 100"><path d="M35 40 Q50 50 65 40" stroke="{color}" stroke-width="2" fill="none"/><circle cx="50" cy="50" r="5" fill="{color}"/></svg>' },
+                { id: 'acc2', name: 'Watch', colors: ['#ffd700', '#c0c0c0', '#ff5722'], svg: '<svg viewBox="0 0 100 100"><rect x="25" y="50" width="10" height="15" rx="2" fill="{color}"/><rect x="27" y="45" width="6" height="25" rx="1" fill="{color}" opacity="0.7"/></svg>' },
+                { id: 'acc3', name: 'Sunglasses', colors: ['#000', '#795548', '#37474f'], svg: '<svg viewBox="0 0 100 100"><path d="M25 35 Q35 30 45 35 L45 42 Q35 47 25 42 Z" fill="{color}"/><path d="M55 35 Q65 30 75 35 L75 42 Q65 47 55 42 Z" fill="{color}"/><path d="M45 37 L55 37" stroke="{color}" stroke-width="2"/></svg>' },
+                { id: 'acc4', name: 'Bag', colors: ['#ff9800', '#9c27b0', '#4caf50'], svg: '<svg viewBox="0 0 100 100"><rect x="65" y="55" width="20" height="25" rx="3" fill="{color}"/><path d="M70 55 Q75 50 80 55" stroke="{color}" stroke-width="2" fill="none"/></svg>' },
+                { id: 'acc5', name: 'Earrings', colors: ['#ffd700', '#e91e63', '#00bcd4'], svg: '<svg viewBox="0 0 100 100"><circle cx="25" cy="35" r="4" fill="{color}"/><circle cx="75" cy="35" r="4" fill="{color}"/><path d="M25 39 L25 45" stroke="{color}" stroke-width="2"/><path d="M75 39 L75 45" stroke="{color}" stroke-width="2"/><circle cx="25" cy="47" r="3" fill="{color}"/><circle cx="75" cy="47" r="3" fill="{color}"/></svg>' }
+            ]
+        };
+
+        // Game state
+        let currentCategory = 'hats';
+        let currentTheme = 'casual';
+        let wornItems = {};
+        let isDragging = false;
+        let draggedItem = null;
+        let isMirrored = false;
+
+        // Initialize game
+        function init() {
+            document.addEventListener('click', initAudio, { once: true });
+            
+            createDollBase();
+            populateWardrobe();
+            setupEventListeners();
+            setupDragAndDrop();
+        }
+
+        // Create the base doll
+        function createDollBase() {
+            const doll = document.getElementById('doll');
+            doll.innerHTML = `
+                <svg class="doll-part base-body" viewBox="0 0 200 400">
+                    <!-- Head -->
+                    <ellipse cx="100" cy="70" rx="40" ry="50" fill="#fdbcb4"/>
+                    <!-- Neck -->
+                    <rect x="90" y="100" width="20" height="30" fill="#fdbcb4"/>
+                    <!-- Body -->
+                    <rect x="70" y="130" width="60" height="100" rx="10" fill="#fdbcb4"/>
+                    <!-- Arms -->
+                    <rect x="40" y="140" width="30" height="15" rx="7" fill="#fdbcb4"/>
+                    <rect x="130" y="140" width="30" height="15" rx="7" fill="#fdbcb4"/>
+                    <ellipse cx="35" cy="147" rx="15" ry="20" fill="#fdbcb4"/>
+                    <ellipse cx="165" cy="147" rx="15" ry="20" fill="#fdbcb4"/>
+                    <!-- Legs -->
+                    <rect x="80" y="230" width="20" height="80" rx="10" fill="#fdbcb4"/>
+                    <rect x="100" y="230" width="20" height="80" rx="10" fill="#fdbcb4"/>
+                    <!-- Feet -->
+                    <ellipse cx="90" cy="320" rx="15" ry="10" fill="#fdbcb4"/>
+                    <ellipse cx="110" cy="320" rx="15" ry="10" fill="#fdbcb4"/>
+                    <!-- Face -->
+                    <circle cx="85" cy="65" r="3" fill="#000"/>
+                    <circle cx="115" cy="65" r="3" fill="#000"/>
+                    <path d="M90 85 Q100 90 110 85" stroke="#ff69b4" stroke-width="2" fill="none"/>
+                    <!-- Hair -->
+                    <path d="M60 60 Q100 40 140 60 L140 80 Q120 70 100 75 Q80 70 60 80 Z" fill="#8b4513"/>
+                </svg>
+                <div class="drop-zone" data-category="hats" style="top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 80px;"></div>
+                <div class="drop-zone" data-category="tops" style="top: 100px; left: 50%; transform: translateX(-50%); width: 140px; height: 120px;"></div>
+                <div class="drop-zone" data-category="bottoms" style="top: 200px; left: 50%; transform: translateX(-50%); width: 120px; height: 100px;"></div>
+                <div class="drop-zone" data-category="shoes" style="bottom: 20px; left: 50%; transform: translateX(-50%); width: 140px; height: 60px;"></div>
+                <div class="drop-zone" data-category="accessories" style="top: 50px; left: 50%; transform: translateX(-50%); width: 180px; height: 250px;"></div>
+            `;
+        }
+
+        // Populate wardrobe with items
+        function populateWardrobe() {
+            const grid = document.getElementById('itemsGrid');
+            const items = clothingData[currentCategory];
+            
+            grid.innerHTML = '';
+            
+            items.forEach(item => {
+                const defaultColor = item.colors[0];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'wardrobe-item';
+                itemDiv.draggable = true;
+                itemDiv.dataset.itemId = item.id;
+                itemDiv.dataset.category = currentCategory;
+                itemDiv.dataset.color = defaultColor;
+                itemDiv.innerHTML = item.svg.replace(/{color}/g, defaultColor);
+                
+                // Add color picker if item has multiple colors
+                if (item.colors.length > 1) {
+                    const colorPicker = document.createElement('div');
+                    colorPicker.className = 'color-picker';
+                    item.colors.forEach(color => {
+                        const colorOption = document.createElement('div');
+                        colorOption.className = 'color-option';
+                        colorOption.style.backgroundColor = color;
+                        colorOption.onclick = (e) => {
+                            e.stopPropagation();
+                            itemDiv.dataset.color = color;
+                            itemDiv.querySelector('svg').outerHTML = item.svg.replace(/{color}/g, color);
+                            playSound('click');
+                        };
+                        colorPicker.appendChild(colorOption);
+                    });
+                    itemDiv.appendChild(colorPicker);
+                }
+                
+                grid.appendChild(itemDiv);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Category tabs
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentCategory = tab.dataset.category;
+                    populateWardrobe();
+                    playSound('click');
+                });
+            });
+
+            // Theme buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTheme = btn.dataset.theme;
+                    applyTheme();
+                    playSound('click');
+                });
+            });
+
+            // Control buttons
+            document.getElementById('randomOutfit').addEventListener('click', generateRandomOutfit);
+            document.getElementById('clearAll').addEventListener('click', clearAllClothing);
+            document.getElementById('saveOutfit').addEventListener('click', saveOutfit);
+            document.getElementById('mirrorToggle').addEventListener('click', toggleMirror);
+        }
+
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            const itemsGrid = document.getElementById('itemsGrid');
+            
+            // Wardrobe items drag start
+            itemsGrid.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('wardrobe-item')) {
+                    isDragging = true;
+                    draggedItem = {
+                        id: e.target.dataset.itemId,
+                        category: e.target.dataset.category,
+                        color: e.target.dataset.color,
+                        element: e.target.cloneNode(true)
+                    };
+                    e.target.classList.add('dragging');
+                    playSound('pickup');
+                }
+            });
+
+            itemsGrid.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('wardrobe-item')) {
+                    e.target.classList.remove('dragging');
+                    isDragging = false;
+                }
+            });
+
+            // Touch events for mobile
+            itemsGrid.addEventListener('touchstart', handleTouchStart, { passive: false });
+            itemsGrid.addEventListener('touchmove', handleTouchMove, { passive: false });
+            itemsGrid.addEventListener('touchend', handleTouchEnd);
+
+            // Drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (isDragging && zone.dataset.category === draggedItem.category) {
+                        zone.classList.add('active');
+                    }
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('active');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('active');
+                    if (isDragging && zone.dataset.category === draggedItem.category) {
+                        addClothingToDoll(draggedItem);
+                        playSound('drop');
+                    }
+                });
+            });
+
+            // Allow removing worn items by clicking
+            document.getElementById('doll').addEventListener('click', (e) => {
+                if (e.target.classList.contains('clothing-item')) {
+                    removeClothingItem(e.target.dataset.category);
+                    playSound('pickup');
+                }
+            });
+        }
+
+        // Touch event handlers
+        let touchItem = null;
+        let touchClone = null;
+
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (target && target.classList.contains('wardrobe-item')) {
+                e.preventDefault();
+                touchItem = {
+                    id: target.dataset.itemId,
+                    category: target.dataset.category,
+                    color: target.dataset.color,
+                    element: target
+                };
+                
+                touchClone = target.cloneNode(true);
+                touchClone.style.position = 'fixed';
+                touchClone.style.zIndex = '1000';
+                touchClone.style.pointerEvents = 'none';
+                touchClone.style.opacity = '0.7';
+                touchClone.style.left = touch.clientX - 45 + 'px';
+                touchClone.style.top = touch.clientY - 45 + 'px';
+                document.body.appendChild(touchClone);
+                
+                playSound('pickup');
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (touchClone) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                touchClone.style.left = touch.clientX - 45 + 'px';
+                touchClone.style.top = touch.clientY - 45 + 'px';
+                
+                // Highlight drop zones
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.remove('active');
+                    if (zone.contains(element) && zone.dataset.category === touchItem.category) {
+                        zone.classList.add('active');
+                    }
+                });
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (touchClone) {
+                const touch = e.changedTouches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                // Check if dropped on valid zone
+                const dropZone = element?.closest('.drop-zone');
+                if (dropZone && dropZone.dataset.category === touchItem.category) {
+                    addClothingToDoll(touchItem);
+                    playSound('drop');
+                }
+                
+                // Clean up
+                document.body.removeChild(touchClone);
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.remove('active');
+                });
+                touchClone = null;
+                touchItem = null;
+            }
+        }
+
+        // Add clothing to doll
+        function addClothingToDoll(item) {
+            const doll = document.getElementById('doll');
+            const category = item.category;
+            
+            // Remove existing item in this category
+            removeClothingItem(category);
+            
+            // Create clothing element
+            const clothingDiv = document.createElement('div');
+            clothingDiv.className = 'clothing-item worn';
+            clothingDiv.dataset.category = category;
+            clothingDiv.style.position = 'absolute';
+            clothingDiv.style.cursor = 'pointer';
+            
+            // Position based on category
+            const positions = {
+                hats: { top: '0px', left: '50%', transform: 'translateX(-50%)', width: '120px', height: '80px' },
+                tops: { top: '100px', left: '50%', transform: 'translateX(-50%)', width: '140px', height: '120px' },
+                bottoms: { top: '200px', left: '50%', transform: 'translateX(-50%)', width: '120px', height: '100px' },
+                shoes: { bottom: '20px', left: '50%', transform: 'translateX(-50%)', width: '140px', height: '60px' },
+                accessories: { top: '50px', left: '50%', transform: 'translateX(-50%)', width: '180px', height: '250px' }
+            };
+            
+            Object.assign(clothingDiv.style, positions[category]);
+            clothingDiv.style.zIndex = category === 'accessories' ? '3' : '2';
+            
+            // Add SVG content
+            const itemData = clothingData[category].find(i => i.id === item.id);
+            clothingDiv.innerHTML = itemData.svg.replace(/{color}/g, item.color);
+            
+            doll.appendChild(clothingDiv);
+            wornItems[category] = item;
+            
+            checkComplete();
+        }
+
+        // Remove clothing item
+        function removeClothingItem(category) {
+            const existing = document.querySelector(`.clothing-item[data-category="${category}"]`);
+            if (existing) {
+                existing.remove();
+                delete wornItems[category];
+            }
+        }
+
+        // Generate random outfit
+        function generateRandomOutfit() {
+            clearAllClothing();
+            
+            Object.keys(clothingData).forEach(category => {
+                if (Math.random() > 0.3) { // 70% chance to add each category
+                    const items = clothingData[category];
+                    const randomItem = items[Math.floor(Math.random() * items.length)];
+                    const randomColor = randomItem.colors[Math.floor(Math.random() * randomItem.colors.length)];
+                    
+                    addClothingToDoll({
+                        id: randomItem.id,
+                        category: category,
+                        color: randomColor
+                    });
+                }
+            });
+            
+            playSound('complete');
+            celebrate();
+        }
+
+        // Clear all clothing
+        function clearAllClothing() {
+            document.querySelectorAll('.clothing-item').forEach(item => item.remove());
+            wornItems = {};
+            playSound('click');
+        }
+
+        // Save outfit (screenshot)
+        function saveOutfit() {
+            const dollStage = document.getElementById('dollStage');
+            
+            // Create a canvas to draw the outfit
+            const canvas = document.createElement('canvas');
+            canvas.width = 300;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw background
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw text
+            ctx.fillStyle = '#ff69b4';
+            ctx.font = 'bold 20px Comic Sans MS';
+            ctx.textAlign = 'center';
+            ctx.fillText('My Outfit!', 150, 30);
+            
+            // Draw date
+            ctx.font = '14px Comic Sans MS';
+            ctx.fillStyle = '#666';
+            const date = new Date().toLocaleDateString();
+            ctx.fillText(date, 150, 480);
+            
+            // Simple representation of the outfit
+            ctx.fillStyle = '#fdbcb4';
+            ctx.beginPath();
+            ctx.arc(150, 100, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            let y = 150;
+            Object.keys(wornItems).forEach(category => {
+                ctx.fillStyle = wornItems[category].color || '#999';
+                ctx.fillRect(100, y, 100, 40);
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Comic Sans MS';
+                ctx.fillText(category, 150, y + 25);
+                y += 50;
+            });
+            
+            // Download the image
+            const link = document.createElement('a');
+            link.download = 'my-outfit-' + Date.now() + '.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            playSound('complete');
+            celebrate();
+        }
+
+        // Toggle mirror effect
+        function toggleMirror() {
+            const dollStage = document.getElementById('dollStage');
+            isMirrored = !isMirrored;
+            dollStage.style.transform = isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+            playSound('click');
+        }
+
+        // Apply theme
+        function applyTheme() {
+            const themes = {
+                casual: { bg1: '#ffeaa7', bg2: '#fab1a0' },
+                formal: { bg1: '#dfe6e9', bg2: '#b2bec3' },
+                summer: { bg1: '#55efc4', bg2: '#81ecec' },
+                winter: { bg1: '#74b9ff', bg2: '#a29bfe' }
+            };
+            
+            const theme = themes[currentTheme];
+            document.body.style.background = `linear-gradient(135deg, ${theme.bg1} 0%, ${theme.bg2} 100%)`;
+        }
+
+        // Check if outfit is complete
+        function checkComplete() {
+            const categories = Object.keys(wornItems);
+            if (categories.length >= 3) {
+                celebrate();
+            }
+        }
+
+        // Celebration animation
+        function celebrate() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = ['🎉', '⭐', '✨', '🌟', '💫'][Math.floor(Math.random() * 5)];
+            document.body.appendChild(celebration);
+            
+            setTimeout(() => celebration.remove(), 1000);
+        }
+
+        // Start the game
+        init();
+    </script>
+</body>
+</html>

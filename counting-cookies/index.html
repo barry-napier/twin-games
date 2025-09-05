@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counting Cookies - Twin Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .level-info {
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .stars {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .star {
+            font-size: 2em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .star.earned {
+            animation: starPop 0.5s ease-out;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(0) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .monster-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .cookie-monster {
+            font-size: 4em;
+            animation: wiggle 2s infinite;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .cookie-monster:hover {
+            transform: scale(1.1);
+        }
+
+        .cookie-monster.happy {
+            animation: happyDance 0.5s ease-out;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        @keyframes happyDance {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-10deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            75% { transform: scale(1.2) rotate(-10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .speech-bubble {
+            background: #fff;
+            border: 3px solid #333;
+            border-radius: 20px;
+            padding: 15px;
+            position: relative;
+            max-width: 300px;
+            font-size: 1.2em;
+            color: #333;
+            animation: fadeIn 0.5s;
+        }
+
+        .speech-bubble:before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-right: 15px solid #333;
+        }
+
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-right: 12px solid #fff;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .target-number {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .number-display {
+            font-size: 3em;
+            color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .jar-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .cookie-jar {
+            width: 200px;
+            height: 250px;
+            background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
+            border: 5px solid #8b7355;
+            border-radius: 20px 20px 60px 60px;
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-end;
+            padding: 10px;
+            gap: 5px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .cookie-jar.shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .jar-lid {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 40px;
+            background: linear-gradient(to bottom, #a0826d 0%, #8b7355 100%);
+            border-radius: 50% 50% 20px 20px;
+            border: 3px solid #6b5a45;
+            z-index: 1;
+        }
+
+        .jar-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #8b7355;
+            font-size: 1.2em;
+            color: #8b7355;
+            font-weight: bold;
+        }
+
+        .cookie-in-jar {
+            font-size: 2em;
+            animation: dropIn 0.3s ease-out;
+        }
+
+        @keyframes dropIn {
+            from {
+                transform: translateY(-50px) scale(1.2);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cookie-tray {
+            background: #fff5e6;
+            border: 3px solid #d4a574;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 120px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cookie {
+            font-size: 3em;
+            cursor: grab;
+            transition: transform 0.2s;
+            animation: cookieAppear 0.5s ease-out;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+        }
+
+        .cookie:active {
+            cursor: grabbing;
+        }
+
+        .cookie.dragging {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .cookie:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        @keyframes cookieAppear {
+            from {
+                transform: scale(0) rotate(180deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #333;
+            min-height: 40px;
+        }
+
+        .feedback.correct {
+            color: #4caf50;
+            animation: celebrate 0.5s ease-out;
+        }
+
+        .feedback.incorrect {
+            color: #f44336;
+            animation: shake 0.5s;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            font-size: 1.5em;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .drop-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .drop-zone.active {
+            background: rgba(102, 126, 234, 0.2);
+            border: 3px dashed #667eea;
+            border-radius: 20px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .cookie-monster {
+                font-size: 3em;
+            }
+
+            .speech-bubble {
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            .cookie-jar {
+                width: 150px;
+                height: 200px;
+            }
+
+            .jar-lid {
+                width: 170px;
+            }
+
+            .cookie {
+                font-size: 2.5em;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>🍪 Counting Cookies 🍪</h1>
+        <div class="level-info">Level <span id="level">1</span> of 10</div>
+        <div class="stars" id="stars">
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="monster-section">
+            <div class="cookie-monster" id="monster">🍪👾</div>
+            <div class="speech-bubble" id="speechBubble">
+                Let's count cookies! Drag them to the jar!
+            </div>
+        </div>
+
+        <div class="target-number">
+            <div class="number-display" id="targetNumber">1</div>
+        </div>
+
+        <div class="jar-section">
+            <div class="cookie-jar" id="cookieJar">
+                <div class="jar-lid"></div>
+                <div class="jar-label">Cookies: <span id="jarCount">0</span></div>
+                <div class="drop-zone" id="dropZone"></div>
+            </div>
+        </div>
+
+        <div class="cookie-tray" id="cookieTray"></div>
+
+        <div class="controls">
+            <button onclick="checkAnswer()">Check Answer</button>
+            <button onclick="nextRound()">Next Round</button>
+            <button onclick="resetGame()">Reset Game</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        // Game state
+        let currentLevel = 1;
+        let targetNumber = 1;
+        let cookiesInJar = 0;
+        let starsEarned = 0;
+        let attempts = 0;
+        let correctInRow = 0;
+        let audioContext = null;
+        let draggedCookie = null;
+
+        // Cookie types
+        const cookieTypes = ['🍪', '🥠', '🧁'];
+        
+        // Speech messages
+        const encouragement = [
+            "Great job counting!",
+            "You're a cookie counting star!",
+            "Fantastic work!",
+            "Keep it up!",
+            "Amazing counting skills!",
+            "You're getting better!",
+            "Wonderful!",
+            "Excellent counting!",
+            "Super job!",
+            "You're a cookie master!"
+        ];
+
+        const tryAgain = [
+            "Let's count again!",
+            "Almost there! Try once more!",
+            "Count carefully!",
+            "Let's try that again!",
+            "You can do it!",
+            "Count each cookie!",
+            "Take your time!",
+            "One more try!",
+            "Count with me!",
+            "Let's count together!"
+        ];
+
+        const monsterMessages = {
+            start: [
+                "Me love cookies! Let's count!",
+                "Yummy cookies to count!",
+                "Help me count cookies!",
+                "Cookie time! Let's count!",
+                "Me so hungry! Count cookies!"
+            ],
+            correct: [
+                "YUM YUM! That's right!",
+                "COOKIES! Perfect counting!",
+                "Me so happy! Correct!",
+                "Delicious counting!",
+                "Cookie monster proud!"
+            ],
+            incorrect: [
+                "Hmm, let's count again!",
+                "Not quite right, try again!",
+                "Me think we need recount!",
+                "Almost! Count once more!",
+                "Let's count cookies together!"
+            ]
+        };
+
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Play sound effect
+        function playSound(frequency, duration, type = 'sine') {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Play success sound
+        function playSuccessSound() {
+            playSound(523, 0.1); // C
+            setTimeout(() => playSound(659, 0.1), 100); // E
+            setTimeout(() => playSound(784, 0.2), 200); // G
+        }
+
+        // Play error sound
+        function playErrorSound() {
+            playSound(200, 0.3, 'sawtooth');
+        }
+
+        // Play cookie placement sound
+        function playCookieSound() {
+            playSound(440, 0.1); // A note
+        }
+
+        // Initialize game
+        function initGame() {
+            currentLevel = 1;
+            starsEarned = 0;
+            updateStars();
+            startNewRound();
+            
+            // Add click listener to monster for audio init
+            document.getElementById('monster').addEventListener('click', () => {
+                initAudio();
+                animateMonster();
+                setMonsterMessage('start');
+            });
+
+            // Setup drag and drop
+            setupDragAndDrop();
+        }
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            const cookieJar = document.getElementById('cookieJar');
+            const dropZone = document.getElementById('dropZone');
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                cookieJar.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop area
+            ['dragenter', 'dragover'].forEach(eventName => {
+                cookieJar.addEventListener(eventName, () => {
+                    dropZone.classList.add('active');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                cookieJar.addEventListener(eventName, () => {
+                    dropZone.classList.remove('active');
+                }, false);
+            });
+
+            // Handle drop
+            cookieJar.addEventListener('drop', handleDrop, false);
+
+            // Touch events for mobile
+            cookieJar.addEventListener('touchmove', handleTouchMove, { passive: false });
+            cookieJar.addEventListener('touchend', handleTouchEnd, false);
+        }
+
+        // Start new round
+        function startNewRound() {
+            targetNumber = currentLevel;
+            cookiesInJar = 0;
+            attempts = 0;
+            
+            document.getElementById('level').textContent = currentLevel;
+            document.getElementById('targetNumber').textContent = targetNumber;
+            document.getElementById('jarCount').textContent = cookiesInJar;
+            document.getElementById('feedback').textContent = '';
+            
+            // Clear jar
+            const jar = document.getElementById('cookieJar');
+            const cookiesInJarElements = jar.querySelectorAll('.cookie-in-jar');
+            cookiesInJarElements.forEach(cookie => cookie.remove());
+            
+            // Generate cookies
+            generateCookies();
+            
+            // Set monster message
+            setMonsterMessage('start');
+        }
+
+        // Generate cookies for the tray
+        function generateCookies() {
+            const tray = document.getElementById('cookieTray');
+            tray.innerHTML = '';
+            
+            // Generate more cookies than needed (1.5x to 2x)
+            const totalCookies = targetNumber + Math.floor(Math.random() * targetNumber) + 3;
+            
+            for (let i = 0; i < totalCookies; i++) {
+                const cookieType = cookieTypes[Math.floor(Math.random() * cookieTypes.length)];
+                const cookie = createCookie(cookieType);
+                
+                // Add slight delay for animation
+                setTimeout(() => {
+                    tray.appendChild(cookie);
+                }, i * 100);
+            }
+        }
+
+        // Create a draggable cookie
+        function createCookie(type) {
+            const cookie = document.createElement('div');
+            cookie.className = 'cookie';
+            cookie.textContent = type;
+            cookie.draggable = true;
+            
+            // Mouse events
+            cookie.addEventListener('dragstart', handleDragStart);
+            cookie.addEventListener('dragend', handleDragEnd);
+            
+            // Touch events
+            cookie.addEventListener('touchstart', handleTouchStart, { passive: false });
+            cookie.addEventListener('touchmove', handleTouchMove, { passive: false });
+            cookie.addEventListener('touchend', handleTouchEnd);
+            
+            return cookie;
+        }
+
+        // Drag start
+        function handleDragStart(e) {
+            draggedCookie = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        // Drag end
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedCookie = null;
+        }
+
+        // Handle drop
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            if (draggedCookie) {
+                addCookieToJar(draggedCookie);
+            }
+            
+            return false;
+        }
+
+        // Touch start
+        function handleTouchStart(e) {
+            e.preventDefault();
+            draggedCookie = this;
+            this.classList.add('dragging');
+            
+            const touch = e.touches[0];
+            this.style.position = 'fixed';
+            this.style.zIndex = '1000';
+            this.style.left = touch.pageX - 30 + 'px';
+            this.style.top = touch.pageY - 30 + 'px';
+        }
+
+        // Touch move
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!draggedCookie) return;
+            
+            const touch = e.touches[0];
+            draggedCookie.style.left = touch.pageX - 30 + 'px';
+            draggedCookie.style.top = touch.pageY - 30 + 'px';
+            
+            // Check if over jar
+            const jar = document.getElementById('cookieJar');
+            const jarRect = jar.getBoundingClientRect();
+            const dropZone = document.getElementById('dropZone');
+            
+            if (touch.clientX >= jarRect.left && touch.clientX <= jarRect.right &&
+                touch.clientY >= jarRect.top && touch.clientY <= jarRect.bottom) {
+                dropZone.classList.add('active');
+            } else {
+                dropZone.classList.remove('active');
+            }
+        }
+
+        // Touch end
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            if (!draggedCookie) return;
+            
+            const touch = e.changedTouches[0];
+            const jar = document.getElementById('cookieJar');
+            const jarRect = jar.getBoundingClientRect();
+            const dropZone = document.getElementById('dropZone');
+            
+            dropZone.classList.remove('active');
+            
+            if (touch.clientX >= jarRect.left && touch.clientX <= jarRect.right &&
+                touch.clientY >= jarRect.top && touch.clientY <= jarRect.bottom) {
+                addCookieToJar(draggedCookie);
+            } else {
+                draggedCookie.classList.remove('dragging');
+                draggedCookie.style.position = '';
+                draggedCookie.style.zIndex = '';
+                draggedCookie.style.left = '';
+                draggedCookie.style.top = '';
+            }
+            
+            draggedCookie = null;
+        }
+
+        // Add cookie to jar
+        function addCookieToJar(cookie) {
+            const jar = document.getElementById('cookieJar');
+            const cookieInJar = document.createElement('div');
+            cookieInJar.className = 'cookie-in-jar';
+            cookieInJar.textContent = cookie.textContent;
+            
+            // Find a place to insert (before the drop zone)
+            const dropZone = document.getElementById('dropZone');
+            jar.insertBefore(cookieInJar, dropZone);
+            
+            cookiesInJar++;
+            document.getElementById('jarCount').textContent = cookiesInJar;
+            
+            // Remove original cookie
+            cookie.remove();
+            
+            // Play sound
+            playCookieSound();
+            
+            // Shake jar
+            jar.classList.add('shake');
+            setTimeout(() => jar.classList.remove('shake'), 500);
+            
+            // Auto-check if reached target
+            if (cookiesInJar === targetNumber) {
+                setTimeout(checkAnswer, 500);
+            }
+        }
+
+        // Check answer
+        function checkAnswer() {
+            attempts++;
+            const feedback = document.getElementById('feedback');
+            
+            if (cookiesInJar === targetNumber) {
+                // Correct!
+                feedback.textContent = encouragement[Math.floor(Math.random() * encouragement.length)];
+                feedback.className = 'feedback correct';
+                
+                playSuccessSound();
+                animateMonster(true);
+                setMonsterMessage('correct');
+                
+                correctInRow++;
+                
+                // Award stars based on attempts
+                if (attempts === 1) {
+                    earnStar();
+                    if (correctInRow >= 3) earnStar();
+                    if (correctInRow >= 5) earnStar();
+                } else if (attempts === 2) {
+                    earnStar();
+                    if (correctInRow >= 3) earnStar();
+                } else if (attempts <= 3) {
+                    earnStar();
+                }
+                
+                // Confetti animation
+                createConfetti();
+                
+                // Auto advance after delay
+                setTimeout(() => {
+                    if (currentLevel < 10) {
+                        nextRound();
+                    } else {
+                        showGameComplete();
+                    }
+                }, 2000);
+                
+            } else {
+                // Incorrect
+                feedback.textContent = tryAgain[Math.floor(Math.random() * tryAgain.length)];
+                feedback.className = 'feedback incorrect';
+                
+                playErrorSound();
+                setMonsterMessage('incorrect');
+                correctInRow = 0;
+            }
+        }
+
+        // Next round
+        function nextRound() {
+            if (currentLevel < 10) {
+                currentLevel++;
+                startNewRound();
+            } else {
+                showGameComplete();
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            currentLevel = 1;
+            starsEarned = 0;
+            correctInRow = 0;
+            updateStars();
+            startNewRound();
+        }
+
+        // Earn a star
+        function earnStar() {
+            if (starsEarned < 3) {
+                starsEarned++;
+                updateStars();
+            }
+        }
+
+        // Update stars display
+        function updateStars() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < starsEarned) {
+                    star.style.color = '#ffd700';
+                    star.classList.add('earned');
+                } else {
+                    star.style.color = '#ccc';
+                    star.classList.remove('earned');
+                }
+            });
+        }
+
+        // Animate monster
+        function animateMonster(happy = false) {
+            const monster = document.getElementById('monster');
+            if (happy) {
+                monster.classList.add('happy');
+                setTimeout(() => monster.classList.remove('happy'), 500);
+            }
+        }
+
+        // Set monster message
+        function setMonsterMessage(type) {
+            const bubble = document.getElementById('speechBubble');
+            const messages = monsterMessages[type];
+            if (messages) {
+                bubble.textContent = messages[Math.floor(Math.random() * messages.length)];
+                bubble.style.animation = 'none';
+                setTimeout(() => bubble.style.animation = 'fadeIn 0.5s', 10);
+            }
+        }
+
+        // Create confetti
+        function createConfetti() {
+            const colors = ['🎉', '🎊', '✨', '🌟', '⭐', '🍪'];
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 50);
+            }
+        }
+
+        // Show game complete message
+        function showGameComplete() {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = `Amazing! You've mastered counting to 10! You earned ${starsEarned} stars!`;
+            feedback.className = 'feedback correct';
+            
+            setMonsterMessage('correct');
+            createConfetti();
+            
+            // Big celebration
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    playSuccessSound();
+                    animateMonster(true);
+                }, i * 500);
+            }
+        }
+
+        // Initialize game on load
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Sorter - Twin Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #87CEEB, #98FB98);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #4A90E2;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .game-mode {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mode-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: #4A90E2;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-button.active {
+            background: #FF6B6B;
+            transform: scale(1.1);
+        }
+
+        .score-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .score, .level, .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .timer {
+            color: #FF6B6B;
+        }
+
+        .main-game {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            min-height: 500px;
+        }
+
+        .shapes-area {
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .shapes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 200px;
+            padding: 20px 0;
+        }
+
+        .shape {
+            width: 60px;
+            height: 60px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shape:hover {
+            transform: scale(1.1);
+        }
+
+        .shape.dragging {
+            transform: scale(1.2) rotate(5deg);
+            z-index: 1000;
+            cursor: grabbing;
+        }
+
+        .shape.correct-drop {
+            animation: correctDrop 0.5s ease;
+        }
+
+        .shape.incorrect-drop {
+            animation: incorrectDrop 0.5s ease;
+        }
+
+        @keyframes correctDrop {
+            0% { transform: scale(1.2); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes incorrectDrop {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shape-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 6px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .sorting-area {
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .sorting-containers {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sort-container {
+            min-height: 80px;
+            border: 3px dashed #4A90E2;
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sort-container.drag-over {
+            border-color: #FF6B6B;
+            background: rgba(255,107,107,0.1);
+            transform: scale(1.02);
+        }
+
+        .sort-container .container-label {
+            position: absolute;
+            top: -15px;
+            left: 15px;
+            background: #4A90E2;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .learning-mode {
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .shape-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .shape-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .shape-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .shape-example {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 10px;
+            border-radius: 5px;
+        }
+
+        .achievements {
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .achievement {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .achievement.unlocked {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .characters {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .character {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            animation: bounce 2s infinite;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .character.happy {
+            animation: celebrate 1s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-5deg); }
+            75% { transform: scale(1.2) rotate(5deg); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #4A90E2;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+        }
+
+        .hint-system {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            z-index: 1001;
+            max-width: 400px;
+            text-align: center;
+            display: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-game {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .game-info {
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .shape {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .characters {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .character {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+
+        /* Shape-specific styles */
+        .circle { border-radius: 50%; }
+        .square { border-radius: 5px; }
+        .triangle { 
+            width: 0; 
+            height: 0; 
+            border-left: 30px solid transparent; 
+            border-right: 30px solid transparent; 
+            border-bottom: 52px solid; 
+        }
+        .rectangle { 
+            width: 80px; 
+            height: 50px; 
+        }
+        .pentagon { 
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); 
+        }
+        .hexagon { 
+            clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%); 
+        }
+        .star { 
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); 
+        }
+        .heart { 
+            position: relative;
+            transform: rotate(-45deg);
+        }
+        .heart:before,
+        .heart:after {
+            content: '';
+            width: 30px;
+            height: 48px;
+            position: absolute;
+            left: 30px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+            border-radius: 30px 30px 0 0;
+            background: inherit;
+        }
+        .heart:after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+        
+        /* 3D shapes as icons */
+        .cube::after {
+            content: '🧊';
+            font-size: 40px;
+        }
+        .sphere::after {
+            content: '🔴';
+            font-size: 40px;
+        }
+        .cylinder::after {
+            content: '🥫';
+            font-size: 40px;
+        }
+        .pyramid::after {
+            content: '🔺';
+            font-size: 40px;
+        }
+
+        /* Colors */
+        .red { background-color: #FF6B6B; }
+        .blue { background-color: #4A90E2; }
+        .green { background-color: #4ECDC4; }
+        .yellow { background-color: #FFD93D; }
+        .purple { background-color: #9B59B6; }
+        .orange { background-color: #FF8C42; }
+        .pink { background-color: #FF69B4; }
+
+        /* Sizes */
+        .small { transform: scale(0.7); }
+        .medium { transform: scale(1); }
+        .large { transform: scale(1.3); }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🔷 Shape Sorter Adventure 🔶</h1>
+        </div>
+
+        <div class="game-info">
+            <div class="game-mode">
+                <button class="mode-button active" data-mode="shapes">Shapes</button>
+                <button class="mode-button" data-mode="colors">Colors</button>
+                <button class="mode-button" data-mode="sizes">Sizes</button>
+                <button class="mode-button" data-mode="learning">Learning</button>
+            </div>
+            
+            <div class="score-info">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="level">Level: <span id="level">1</span></div>
+                <div class="timer" id="timer" style="display: none;">Time: <span id="time">60</span>s</div>
+            </div>
+        </div>
+
+        <div class="main-game" id="mainGame">
+            <div class="shapes-area">
+                <h3 style="text-align: center; margin-bottom: 15px; color: #333;">Drag shapes to sort them!</h3>
+                <div class="shapes-container" id="shapesContainer"></div>
+            </div>
+
+            <div class="sorting-area">
+                <h3 style="text-align: center; margin-bottom: 15px; color: #333;">Sort Here</h3>
+                <div class="sorting-containers" id="sortingContainers"></div>
+            </div>
+        </div>
+
+        <div class="learning-mode" id="learningMode" style="display: none;">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #333;">Shape Learning Center</h3>
+            <div class="shape-info" id="shapeInfo"></div>
+        </div>
+
+        <div class="achievements" id="achievements">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #333;">Achievements</h3>
+            <div class="achievement-grid" id="achievementGrid"></div>
+        </div>
+
+        <div class="controls">
+            <button class="control-button" onclick="newGame()">New Game</button>
+            <button class="control-button" onclick="toggleTimer()">Timer Mode</button>
+            <button class="control-button" onclick="showHint()">Hint</button>
+            <button class="control-button" onclick="speakShapeName()">Speak</button>
+        </div>
+    </div>
+
+    <div class="characters">
+        <div class="character" id="sarah">👧</div>
+        <div class="character" id="finn">👦</div>
+    </div>
+
+    <div class="hint-system" id="hintSystem">
+        <h3>Hint</h3>
+        <p id="hintText"></p>
+        <button class="control-button" onclick="closeHint()">Got it!</button>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            currentMode: 'shapes',
+            score: 0,
+            level: 1,
+            correctAnswers: 0,
+            totalQuestions: 0,
+            timerMode: false,
+            timeLeft: 60,
+            timerInterval: null,
+            achievements: [],
+            currentShapes: []
+        };
+
+        // Audio context for sound effects
+        let audioContext;
+        let sounds = {};
+
+        // Shape definitions
+        const shapeTypes = {
+            '2d': ['circle', 'square', 'triangle', 'rectangle', 'pentagon', 'hexagon', 'star', 'heart'],
+            '3d': ['cube', 'sphere', 'cylinder', 'pyramid']
+        };
+
+        const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink'];
+        const sizes = ['small', 'medium', 'large'];
+
+        const shapeInfo = {
+            circle: { name: 'Circle', description: 'A round shape with no corners', properties: 'No sides, curved line' },
+            square: { name: 'Square', description: 'A shape with 4 equal sides', properties: '4 equal sides, 4 right angles' },
+            triangle: { name: 'Triangle', description: 'A shape with 3 sides', properties: '3 sides, 3 angles' },
+            rectangle: { name: 'Rectangle', description: 'A shape with 4 sides, opposite sides equal', properties: '4 sides, 4 right angles' },
+            pentagon: { name: 'Pentagon', description: 'A shape with 5 sides', properties: '5 sides, 5 angles' },
+            hexagon: { name: 'Hexagon', description: 'A shape with 6 sides', properties: '6 sides, 6 angles' },
+            star: { name: 'Star', description: 'A pointed star shape', properties: 'Multiple points radiating from center' },
+            heart: { name: 'Heart', description: 'A heart shape', properties: 'Symbol of love, curved top, pointed bottom' },
+            cube: { name: 'Cube', description: '3D shape with 6 square faces', properties: '6 faces, 8 vertices, 12 edges' },
+            sphere: { name: 'Sphere', description: '3D round shape like a ball', properties: 'Curved surface, no edges or vertices' },
+            cylinder: { name: 'Cylinder', description: '3D shape like a can', properties: '2 circular faces, 1 curved surface' },
+            pyramid: { name: 'Pyramid', description: '3D shape with triangular faces', properties: 'Triangular faces meeting at apex' }
+        };
+
+        const achievements = [
+            { id: 'first_sort', name: 'First Sort', description: 'Complete your first sorting task', icon: '🎯' },
+            { id: 'shape_master', name: 'Shape Master', description: 'Sort 50 shapes correctly', icon: '🏆' },
+            { id: 'color_expert', name: 'Color Expert', description: 'Master color sorting', icon: '🌈' },
+            { id: 'size_wizard', name: 'Size Wizard', description: 'Master size sorting', icon: '📏' },
+            { id: 'speed_demon', name: 'Speed Demon', description: 'Complete a level in under 30 seconds', icon: '⚡' },
+            { id: 'perfect_round', name: 'Perfect Round', description: 'Get 100% accuracy in a level', icon: '⭐' },
+            { id: 'learning_star', name: 'Learning Star', description: 'Complete learning mode', icon: '📚' },
+            { id: 'level_10', name: 'Persistence', description: 'Reach level 10', icon: '🚀' }
+        ];
+
+        // Initialize the game
+        function initGame() {
+            initAudio();
+            setupEventListeners();
+            renderAchievements();
+            newGame();
+        }
+
+        // Initialize audio context
+        function initAudio() {
+            document.addEventListener('click', function initAudioContext() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    createSounds();
+                    document.removeEventListener('click', initAudioContext);
+                }
+            }, { once: true });
+        }
+
+        // Create sound effects
+        function createSounds() {
+            if (!audioContext) return;
+            
+            sounds.correct = createTone(800, 0.2, 'sine');
+            sounds.incorrect = createTone(300, 0.3, 'sawtooth');
+            sounds.complete = createTone(1000, 0.5, 'sine');
+            sounds.drop = createTone(400, 0.1, 'triangle');
+        }
+
+        function createTone(frequency, duration, type = 'sine') {
+            return () => {
+                if (!audioContext) return;
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            };
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mode buttons
+            document.querySelectorAll('.mode-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    gameState.currentMode = button.dataset.mode;
+                    switchMode(gameState.currentMode);
+                });
+            });
+
+            // Touch and mouse events for drag and drop
+            document.addEventListener('dragstart', e => e.preventDefault());
+        }
+
+        // Switch game mode
+        function switchMode(mode) {
+            const mainGame = document.getElementById('mainGame');
+            const learningMode = document.getElementById('learningMode');
+            
+            if (mode === 'learning') {
+                mainGame.style.display = 'none';
+                learningMode.style.display = 'block';
+                renderLearningMode();
+            } else {
+                mainGame.style.display = 'grid';
+                learningMode.style.display = 'none';
+                newGame();
+            }
+        }
+
+        // Start new game
+        function newGame() {
+            gameState.currentShapes = [];
+            gameState.correctAnswers = 0;
+            
+            if (gameState.currentMode === 'learning') {
+                renderLearningMode();
+                return;
+            }
+            
+            generateShapes();
+            createSortingContainers();
+            updateDisplay();
+        }
+
+        // Generate random shapes based on current mode
+        function generateShapes() {
+            const container = document.getElementById('shapesContainer');
+            container.innerHTML = '';
+            
+            const numShapes = Math.min(8 + gameState.level, 16);
+            const shapesToUse = gameState.level <= 3 ? shapeTypes['2d'].slice(0, 4) : 
+                               gameState.level <= 6 ? shapeTypes['2d'].slice(0, 6) :
+                               [...shapeTypes['2d'], ...shapeTypes['3d']];
+            
+            for (let i = 0; i < numShapes; i++) {
+                const shape = {
+                    type: shapesToUse[Math.floor(Math.random() * shapesToUse.length)],
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: sizes[Math.floor(Math.random() * sizes.length)],
+                    id: `shape-${i}`
+                };
+                
+                gameState.currentShapes.push(shape);
+                createShapeElement(shape);
+            }
+        }
+
+        // Create shape element
+        function createShapeElement(shape) {
+            const container = document.getElementById('shapesContainer');
+            const shapeEl = document.createElement('div');
+            
+            shapeEl.className = `shape ${shape.type} ${shape.color} ${shape.size}`;
+            shapeEl.id = shape.id;
+            shapeEl.draggable = false;
+            
+            // Add shape label for learning
+            const label = document.createElement('div');
+            label.className = 'shape-label';
+            label.textContent = shapeInfo[shape.type].name;
+            shapeEl.appendChild(label);
+            
+            // Add touch and mouse event listeners
+            setupDragEvents(shapeEl, shape);
+            
+            container.appendChild(shapeEl);
+        }
+
+        // Setup drag events for touch and mouse
+        function setupDragEvents(element, shape) {
+            let isDragging = false;
+            let offset = { x: 0, y: 0 };
+            
+            // Mouse events
+            element.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            // Touch events
+            element.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', endDrag, { passive: false });
+            
+            function startDrag(e) {
+                e.preventDefault();
+                isDragging = true;
+                element.classList.add('dragging');
+                
+                const rect = element.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                offset.x = clientX - rect.left;
+                offset.y = clientY - rect.top;
+                
+                element.style.position = 'fixed';
+                element.style.zIndex = '1000';
+                element.style.pointerEvents = 'none';
+                
+                if (sounds.drop) sounds.drop();
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                element.style.left = (clientX - offset.x) + 'px';
+                element.style.top = (clientY - offset.y) + 'px';
+                
+                // Highlight drop zones
+                const dropZones = document.querySelectorAll('.sort-container');
+                dropZones.forEach(zone => {
+                    const rect = zone.getBoundingClientRect();
+                    if (clientX >= rect.left && clientX <= rect.right &&
+                        clientY >= rect.top && clientY <= rect.bottom) {
+                        zone.classList.add('drag-over');
+                    } else {
+                        zone.classList.remove('drag-over');
+                    }
+                });
+            }
+            
+            function endDrag(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                element.classList.remove('dragging');
+                element.style.position = '';
+                element.style.zIndex = '';
+                element.style.pointerEvents = '';
+                element.style.left = '';
+                element.style.top = '';
+                
+                const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+                const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+                
+                // Find drop target
+                const dropTarget = document.elementFromPoint(clientX, clientY)?.closest('.sort-container');
+                
+                document.querySelectorAll('.sort-container').forEach(zone => {
+                    zone.classList.remove('drag-over');
+                });
+                
+                if (dropTarget) {
+                    handleDrop(element, shape, dropTarget);
+                }
+            }
+        }
+
+        // Handle shape drop
+        function handleDrop(shapeElement, shape, dropTarget) {
+            const category = dropTarget.dataset.category;
+            const value = dropTarget.dataset.value;
+            
+            let isCorrect = false;
+            
+            switch (gameState.currentMode) {
+                case 'shapes':
+                    isCorrect = shape.type === value;
+                    break;
+                case 'colors':
+                    isCorrect = shape.color === value;
+                    break;
+                case 'sizes':
+                    isCorrect = shape.size === value;
+                    break;
+            }
+            
+            if (isCorrect) {
+                handleCorrectDrop(shapeElement, shape, dropTarget);
+            } else {
+                handleIncorrectDrop(shapeElement);
+            }
+        }
+
+        // Handle correct drop
+        function handleCorrectDrop(shapeElement, shape, dropTarget) {
+            shapeElement.classList.add('correct-drop');
+            dropTarget.appendChild(shapeElement);
+            
+            gameState.score += 10 * gameState.level;
+            gameState.correctAnswers++;
+            gameState.totalQuestions++;
+            
+            if (sounds.correct) sounds.correct();
+            
+            // Animate characters
+            animateCharacters('happy');
+            
+            // Check for level completion
+            if (gameState.correctAnswers >= Math.ceil(gameState.currentShapes.length * 0.8)) {
+                setTimeout(() => {
+                    levelComplete();
+                }, 500);
+            }
+            
+            updateDisplay();
+            checkAchievements();
+        }
+
+        // Handle incorrect drop
+        function handleIncorrectDrop(shapeElement) {
+            shapeElement.classList.add('incorrect-drop');
+            gameState.totalQuestions++;
+            
+            if (sounds.incorrect) sounds.incorrect();
+            
+            setTimeout(() => {
+                shapeElement.classList.remove('incorrect-drop');
+            }, 500);
+            
+            updateDisplay();
+        }
+
+        // Create sorting containers based on current mode
+        function createSortingContainers() {
+            const container = document.getElementById('sortingContainers');
+            container.innerHTML = '';
+            
+            let categories = [];
+            
+            switch (gameState.currentMode) {
+                case 'shapes':
+                    const availableShapes = [...new Set(gameState.currentShapes.map(s => s.type))];
+                    categories = availableShapes.map(shape => ({
+                        label: shapeInfo[shape].name,
+                        value: shape,
+                        icon: getShapeIcon(shape)
+                    }));
+                    break;
+                    
+                case 'colors':
+                    const availableColors = [...new Set(gameState.currentShapes.map(s => s.color))];
+                    categories = availableColors.map(color => ({
+                        label: color.charAt(0).toUpperCase() + color.slice(1),
+                        value: color,
+                        color: color
+                    }));
+                    break;
+                    
+                case 'sizes':
+                    const availableSizes = [...new Set(gameState.currentShapes.map(s => s.size))];
+                    categories = availableSizes.map(size => ({
+                        label: size.charAt(0).toUpperCase() + size.slice(1),
+                        value: size,
+                        icon: getSizeIcon(size)
+                    }));
+                    break;
+            }
+            
+            categories.forEach(category => {
+                const containerEl = document.createElement('div');
+                containerEl.className = 'sort-container';
+                containerEl.dataset.category = gameState.currentMode;
+                containerEl.dataset.value = category.value;
+                
+                const label = document.createElement('div');
+                label.className = 'container-label';
+                if (category.color) {
+                    label.style.backgroundColor = getColorValue(category.color);
+                }
+                label.textContent = `${category.icon || ''} ${category.label}`;
+                
+                containerEl.appendChild(label);
+                container.appendChild(containerEl);
+            });
+        }
+
+        // Get shape icon for display
+        function getShapeIcon(shape) {
+            const icons = {
+                circle: '⭕',
+                square: '⬜',
+                triangle: '🔺',
+                rectangle: '▭',
+                pentagon: '⬟',
+                hexagon: '⬡',
+                star: '⭐',
+                heart: '❤️',
+                cube: '🧊',
+                sphere: '🔴',
+                cylinder: '🥫',
+                pyramid: '🔺'
+            };
+            return icons[shape] || '●';
+        }
+
+        // Get size icon for display
+        function getSizeIcon(size) {
+            const icons = {
+                small: '🔸',
+                medium: '🔹',
+                large: '🔶'
+            };
+            return icons[size] || '●';
+        }
+
+        // Get color value for styling
+        function getColorValue(color) {
+            const colorMap = {
+                red: '#FF6B6B',
+                blue: '#4A90E2',
+                green: '#4ECDC4',
+                yellow: '#FFD93D',
+                purple: '#9B59B6',
+                orange: '#FF8C42',
+                pink: '#FF69B4'
+            };
+            return colorMap[color] || '#333';
+        }
+
+        // Level complete
+        function levelComplete() {
+            gameState.level++;
+            
+            if (sounds.complete) sounds.complete();
+            animateCharacters('happy');
+            
+            // Check for speed achievement
+            if (gameState.timerMode && gameState.timeLeft > 30) {
+                unlockAchievement('speed_demon');
+            }
+            
+            // Check for perfect round
+            if (gameState.correctAnswers === gameState.totalQuestions) {
+                unlockAchievement('perfect_round');
+            }
+            
+            setTimeout(() => {
+                newGame();
+            }, 2000);
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('level').textContent = gameState.level;
+            
+            if (gameState.timerMode) {
+                document.getElementById('time').textContent = gameState.timeLeft;
+            }
+        }
+
+        // Animate characters
+        function animateCharacters(mood) {
+            const characters = document.querySelectorAll('.character');
+            characters.forEach(char => {
+                char.classList.add(mood);
+                setTimeout(() => {
+                    char.classList.remove(mood);
+                }, 1000);
+            });
+        }
+
+        // Toggle timer mode
+        function toggleTimer() {
+            gameState.timerMode = !gameState.timerMode;
+            const timer = document.getElementById('timer');
+            
+            if (gameState.timerMode) {
+                timer.style.display = 'block';
+                startTimer();
+            } else {
+                timer.style.display = 'none';
+                stopTimer();
+            }
+        }
+
+        // Start timer
+        function startTimer() {
+            gameState.timeLeft = 60;
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateDisplay();
+                
+                if (gameState.timeLeft <= 0) {
+                    stopTimer();
+                    alert('Time\'s up! Starting new game...');
+                    newGame();
+                }
+            }, 1000);
+        }
+
+        // Stop timer
+        function stopTimer() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+            }
+        }
+
+        // Show hint
+        function showHint() {
+            const hints = {
+                shapes: 'Look at the shape of each object and match it to the correct container!',
+                colors: 'Group objects by their color - reds with reds, blues with blues!',
+                sizes: 'Sort by size - small, medium, and large objects go in different containers!',
+                learning: 'Click on shapes to learn about their properties and characteristics!'
+            };
+            
+            document.getElementById('hintText').textContent = hints[gameState.currentMode];
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('hintSystem').style.display = 'block';
+        }
+
+        // Close hint
+        function closeHint() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('hintSystem').style.display = 'none';
+        }
+
+        // Speak shape name using speech synthesis
+        function speakShapeName() {
+            if (!('speechSynthesis' in window)) return;
+            
+            const shapes = gameState.currentShapes;
+            if (shapes.length === 0) return;
+            
+            const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+            const utterance = new SpeechSynthesisUtterance(
+                `This is a ${randomShape.color} ${randomShape.size} ${shapeInfo[randomShape.type].name}`
+            );
+            utterance.rate = 0.8;
+            speechSynthesis.speak(utterance);
+        }
+
+        // Render learning mode
+        function renderLearningMode() {
+            const container = document.getElementById('shapeInfo');
+            container.innerHTML = '';
+            
+            Object.entries(shapeInfo).forEach(([key, info]) => {
+                const card = document.createElement('div');
+                card.className = 'shape-card';
+                
+                const example = document.createElement('div');
+                example.className = `shape-example ${key} blue`;
+                
+                const name = document.createElement('h4');
+                name.textContent = info.name;
+                
+                const description = document.createElement('p');
+                description.textContent = info.description;
+                
+                const properties = document.createElement('small');
+                properties.textContent = info.properties;
+                properties.style.color = '#666';
+                
+                card.appendChild(example);
+                card.appendChild(name);
+                card.appendChild(description);
+                card.appendChild(properties);
+                
+                card.addEventListener('click', () => {
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(
+                            `${info.name}. ${info.description}. ${info.properties}`
+                        );
+                        utterance.rate = 0.8;
+                        speechSynthesis.speak(utterance);
+                    }
+                });
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Achievement system
+        function checkAchievements() {
+            // First sort
+            if (gameState.correctAnswers === 1 && !gameState.achievements.includes('first_sort')) {
+                unlockAchievement('first_sort');
+            }
+            
+            // Shape master
+            if (gameState.score >= 500 && !gameState.achievements.includes('shape_master')) {
+                unlockAchievement('shape_master');
+            }
+            
+            // Level 10
+            if (gameState.level >= 10 && !gameState.achievements.includes('level_10')) {
+                unlockAchievement('level_10');
+            }
+            
+            // Mode-specific achievements
+            if (gameState.currentMode === 'colors' && gameState.correctAnswers >= 10) {
+                unlockAchievement('color_expert');
+            }
+            
+            if (gameState.currentMode === 'sizes' && gameState.correctAnswers >= 10) {
+                unlockAchievement('size_wizard');
+            }
+        }
+
+        function unlockAchievement(id) {
+            if (gameState.achievements.includes(id)) return;
+            
+            gameState.achievements.push(id);
+            renderAchievements();
+            
+            // Show achievement notification
+            const achievement = achievements.find(a => a.id === id);
+            if (achievement) {
+                setTimeout(() => {
+                    alert(`🎉 Achievement Unlocked: ${achievement.name}\n${achievement.description}`);
+                }, 500);
+            }
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievementGrid');
+            container.innerHTML = '';
+            
+            achievements.forEach(achievement => {
+                const achEl = document.createElement('div');
+                achEl.className = 'achievement';
+                
+                if (gameState.achievements.includes(achievement.id)) {
+                    achEl.classList.add('unlocked');
+                }
+                
+                achEl.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 5px;">${achievement.icon}</div>
+                    <div style="font-weight: bold; font-size: 14px;">${achievement.name}</div>
+                    <div style="font-size: 12px; margin-top: 5px;">${achievement.description}</div>
+                `;
+                
+                container.appendChild(achEl);
+            });
+        }
+
+        // Initialize game when page loads
+        window.addEventListener('load', initGame);
+        
+        // Handle page visibility for timer
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameState.timerInterval) {
+                stopTimer();
+            }
+        });
+    </script>
+</body>
+</html>

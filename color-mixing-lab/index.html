@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Mixing Laboratory - Twin Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .mode-btn.active {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 1200px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .lab-area {
+            display: grid;
+            grid-template-columns: 200px 1fr 250px;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .primary-colors {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .color-source {
+            width: 100%;
+            height: 80px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: grab;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-source:active {
+            cursor: grabbing;
+        }
+
+        .color-source.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .color-source.red {
+            background: linear-gradient(135deg, #ff4757, #ee5858);
+        }
+
+        .color-source.blue {
+            background: linear-gradient(135deg, #3742fa, #5352ed);
+        }
+
+        .color-source.yellow {
+            background: linear-gradient(135deg, #ffd32c, #ffb142);
+        }
+
+        .color-source::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .color-source:hover::before {
+            animation: shimmer 0.5s ease;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        .mixing-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .beakers {
+            display: flex;
+            gap: 30px;
+            align-items: flex-end;
+        }
+
+        .beaker {
+            width: 120px;
+            height: 180px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .beaker.drag-over {
+            transform: scale(1.05);
+        }
+
+        .beaker.mixing {
+            animation: wobble 0.5s ease;
+        }
+
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+        }
+
+        .beaker-glass {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(255,255,255,0.8) 0%, 
+                rgba(255,255,255,0.6) 50%, 
+                rgba(255,255,255,0.4) 100%);
+            border: 3px solid #ddd;
+            border-radius: 10px 10px 40px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .beaker-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            transition: all 0.5s ease;
+            border-radius: 0 0 37px 37px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .beaker-liquid.animating {
+            animation: bubble 1s ease;
+        }
+
+        @keyframes bubble {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .beaker-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .mixing-operator {
+            font-size: 2rem;
+            color: #666;
+            margin: 0 10px;
+        }
+
+        .mix-button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-family: inherit;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .mix-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .mix-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .color-wheel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .color-wheel h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .wheel-svg {
+            width: 100%;
+            height: 200px;
+        }
+
+        .challenge-panel {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .challenge-panel.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .challenge-text {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .target-color {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin: 0 5px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .achievements {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .achievement {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .achievement.unlocked {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            animation: achievementPop 0.5s ease;
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes achievementPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .achievement-tooltip {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .achievement:hover .achievement-tooltip {
+            opacity: 1;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tooltip {
+            position: fixed;
+            background: #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            max-width: 250px;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: particleFloat 2s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .lab-area {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .primary-colors {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .color-source {
+                width: 80px;
+                height: 80px;
+                font-size: 1rem;
+            }
+
+            .beakers {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .color-wheel {
+                order: -1;
+            }
+
+            .wheel-svg {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Color Mixing Laboratory 🎨</h1>
+        <div class="mode-buttons">
+            <button class="mode-btn active" data-mode="free">Free Mix</button>
+            <button class="mode-btn" data-mode="challenge">Challenges</button>
+        </div>
+    </div>
+
+    <div class="challenge-panel" id="challengePanel">
+        <div class="challenge-text">
+            <strong>Challenge:</strong> Mix colors to create 
+            <span class="target-color" id="targetColor"></span>
+            <span id="targetName"></span>!
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="lab-area">
+            <div class="primary-colors">
+                <div class="color-source red" draggable="true" data-color="red">Red</div>
+                <div class="color-source blue" draggable="true" data-color="blue">Blue</div>
+                <div class="color-source yellow" draggable="true" data-color="yellow">Yellow</div>
+            </div>
+
+            <div class="mixing-area">
+                <div class="beakers">
+                    <div class="beaker" data-beaker="1">
+                        <div class="beaker-glass">
+                            <div class="beaker-liquid" id="liquid1"></div>
+                        </div>
+                        <div class="beaker-label">Beaker 1</div>
+                    </div>
+                    <span class="mixing-operator">+</span>
+                    <div class="beaker" data-beaker="2">
+                        <div class="beaker-glass">
+                            <div class="beaker-liquid" id="liquid2"></div>
+                        </div>
+                        <div class="beaker-label">Beaker 2</div>
+                    </div>
+                    <span class="mixing-operator">=</span>
+                    <div class="beaker" data-beaker="result">
+                        <div class="beaker-glass">
+                            <div class="beaker-liquid" id="liquidResult"></div>
+                        </div>
+                        <div class="beaker-label">Result</div>
+                    </div>
+                </div>
+                <button class="mix-button" id="mixBtn" disabled>Mix Colors!</button>
+            </div>
+
+            <div class="color-wheel">
+                <h3>Color Wheel</h3>
+                <svg class="wheel-svg" viewBox="0 0 250 200">
+                    <!-- Primary colors -->
+                    <circle cx="125" cy="50" r="25" fill="#ff4757"/>
+                    <text x="125" y="55" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Red</text>
+                    
+                    <circle cx="75" cy="130" r="25" fill="#3742fa"/>
+                    <text x="75" y="135" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Blue</text>
+                    
+                    <circle cx="175" cy="130" r="25" fill="#ffd32c"/>
+                    <text x="175" y="135" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Yellow</text>
+                    
+                    <!-- Secondary colors -->
+                    <circle cx="100" cy="90" r="20" fill="#9b59b6" opacity="0.8"/>
+                    <text x="100" y="95" text-anchor="middle" fill="white" font-size="10">Purple</text>
+                    
+                    <circle cx="150" cy="90" r="20" fill="#ff9500" opacity="0.8"/>
+                    <text x="150" y="95" text-anchor="middle" fill="white" font-size="10">Orange</text>
+                    
+                    <circle cx="125" cy="130" r="20" fill="#27ae60" opacity="0.8"/>
+                    <text x="125" y="135" text-anchor="middle" fill="white" font-size="10">Green</text>
+                    
+                    <!-- Connection lines -->
+                    <line x1="115" y1="70" x2="105" y2="85" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+                    <line x1="135" y1="70" x2="145" y2="85" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+                    <line x1="95" y1="120" x2="110" y2="115" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+                    <line x1="155" y1="120" x2="140" y2="115" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+                    <line x1="88" y1="110" x2="100" y2="100" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+                    <line x1="162" y1="110" x2="150" y2="100" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="achievements">
+            <div class="achievement" data-achievement="purple">
+                <span>💜</span>
+                <span class="achievement-tooltip">Purple Master</span>
+            </div>
+            <div class="achievement" data-achievement="orange">
+                <span>🧡</span>
+                <span class="achievement-tooltip">Orange Expert</span>
+            </div>
+            <div class="achievement" data-achievement="green">
+                <span>💚</span>
+                <span class="achievement-tooltip">Green Genius</span>
+            </div>
+            <div class="achievement" data-achievement="all">
+                <span>🌈</span>
+                <span class="achievement-tooltip">Color Master!</span>
+            </div>
+            <div class="achievement" data-achievement="challenge">
+                <span>🏆</span>
+                <span class="achievement-tooltip">Challenge Champion</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="resetBtn">🔄 Reset Lab</button>
+            <button class="control-btn" id="helpBtn">❓ Help</button>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+    <div class="particles" id="particles"></div>
+
+    <script>
+        // Game state
+        let gameMode = 'free';
+        let beaker1Color = null;
+        let beaker2Color = null;
+        let resultColor = null;
+        let draggedColor = null;
+        let achievements = {
+            purple: false,
+            orange: false,
+            green: false,
+            all: false,
+            challenge: false
+        };
+        let currentChallenge = null;
+        let challengesCompleted = 0;
+
+        // Color mixing rules
+        const colorMixes = {
+            'red-blue': { color: 'purple', rgb: '#9b59b6' },
+            'blue-red': { color: 'purple', rgb: '#9b59b6' },
+            'red-yellow': { color: 'orange', rgb: '#ff9500' },
+            'yellow-red': { color: 'orange', rgb: '#ff9500' },
+            'blue-yellow': { color: 'green', rgb: '#27ae60' },
+            'yellow-blue': { color: 'green', rgb: '#27ae60' }
+        };
+
+        // Color RGB values
+        const colorRGB = {
+            red: '#ff4757',
+            blue: '#3742fa',
+            yellow: '#ffd32c',
+            purple: '#9b59b6',
+            orange: '#ff9500',
+            green: '#27ae60'
+        };
+
+        // Audio context for sound effects
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            switch(type) {
+                case 'drop':
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                case 'mix':
+                    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'success':
+                    oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.4);
+                    break;
+                case 'achievement':
+                    for (let i = 0; i < 3; i++) {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.setValueAtTime(440 + i * 110, audioContext.currentTime + i * 0.1);
+                        gain.gain.setValueAtTime(0.2, audioContext.currentTime + i * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.1 + 0.2);
+                        osc.start(audioContext.currentTime + i * 0.1);
+                        osc.stop(audioContext.currentTime + i * 0.1 + 0.2);
+                    }
+                    break;
+            }
+        }
+
+        // Initialize drag and drop
+        document.querySelectorAll('.color-source').forEach(source => {
+            source.addEventListener('dragstart', handleDragStart);
+            source.addEventListener('dragend', handleDragEnd);
+            
+            // Touch events
+            source.addEventListener('touchstart', handleTouchStart, { passive: false });
+            source.addEventListener('touchmove', handleTouchMove, { passive: false });
+            source.addEventListener('touchend', handleTouchEnd);
+        });
+
+        document.querySelectorAll('.beaker[data-beaker="1"], .beaker[data-beaker="2"]').forEach(beaker => {
+            beaker.addEventListener('dragover', handleDragOver);
+            beaker.addEventListener('drop', handleDrop);
+            beaker.addEventListener('dragleave', handleDragLeave);
+        });
+
+        function handleDragStart(e) {
+            initAudio();
+            draggedColor = e.target.dataset.color;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const beakerNum = e.currentTarget.dataset.beaker;
+            addColorToBeaker(beakerNum, draggedColor);
+        }
+
+        // Touch event handling
+        let touchItem = null;
+        let touchOffset = { x: 0, y: 0 };
+
+        function handleTouchStart(e) {
+            initAudio();
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchItem = e.target;
+            draggedColor = touchItem.dataset.color;
+            
+            const rect = touchItem.getBoundingClientRect();
+            touchOffset.x = touch.clientX - rect.left;
+            touchOffset.y = touch.clientY - rect.top;
+            
+            touchItem.classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!touchItem) return;
+            
+            const touch = e.touches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Check if over a beaker
+            document.querySelectorAll('.beaker').forEach(beaker => {
+                beaker.classList.remove('drag-over');
+            });
+            
+            if (elementBelow && elementBelow.closest('.beaker')) {
+                const beaker = elementBelow.closest('.beaker');
+                if (beaker.dataset.beaker === '1' || beaker.dataset.beaker === '2') {
+                    beaker.classList.add('drag-over');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            if (!touchItem) return;
+            
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            touchItem.classList.remove('dragging');
+            
+            if (elementBelow && elementBelow.closest('.beaker')) {
+                const beaker = elementBelow.closest('.beaker');
+                if (beaker.dataset.beaker === '1' || beaker.dataset.beaker === '2') {
+                    addColorToBeaker(beaker.dataset.beaker, draggedColor);
+                }
+            }
+            
+            document.querySelectorAll('.beaker').forEach(beaker => {
+                beaker.classList.remove('drag-over');
+            });
+            
+            touchItem = null;
+        }
+
+        function addColorToBeaker(beakerNum, color) {
+            const liquid = document.getElementById(`liquid${beakerNum}`);
+            
+            if (beakerNum === '1') {
+                beaker1Color = color;
+            } else {
+                beaker2Color = color;
+            }
+            
+            liquid.style.height = '60%';
+            liquid.style.background = `linear-gradient(to top, ${colorRGB[color]}, ${lightenColor(colorRGB[color], 20)})`;
+            liquid.textContent = color.charAt(0).toUpperCase() + color.slice(1);
+            liquid.classList.add('animating');
+            
+            setTimeout(() => {
+                liquid.classList.remove('animating');
+            }, 1000);
+            
+            playSound('drop');
+            createSplashParticles(liquid, colorRGB[color]);
+            
+            // Enable mix button if both beakers have colors
+            if (beaker1Color && beaker2Color) {
+                document.getElementById('mixBtn').disabled = false;
+            }
+        }
+
+        function lightenColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                (B < 255 ? B < 1 ? 0 : B : 255))
+                .toString(16).slice(1);
+        }
+
+        function createSplashParticles(element, color) {
+            const rect = element.getBoundingClientRect();
+            const particles = document.getElementById('particles');
+            
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = rect.left + rect.width / 2 + 'px';
+                particle.style.top = rect.top + 'px';
+                particle.style.backgroundColor = color;
+                particle.style.setProperty('--dx', (Math.random() - 0.5) * 100 + 'px');
+                particle.style.setProperty('--dy', Math.random() * -100 + 'px');
+                
+                particles.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 2000);
+            }
+        }
+
+        // Mix button functionality
+        document.getElementById('mixBtn').addEventListener('click', mixColors);
+
+        function mixColors() {
+            initAudio();
+            const mixKey = `${beaker1Color}-${beaker2Color}`;
+            const mixture = colorMixes[mixKey];
+            
+            if (mixture) {
+                // Animate mixing
+                document.querySelectorAll('.beaker').forEach(beaker => {
+                    beaker.classList.add('mixing');
+                });
+                
+                playSound('mix');
+                
+                setTimeout(() => {
+                    const resultLiquid = document.getElementById('liquidResult');
+                    resultLiquid.style.height = '70%';
+                    resultLiquid.style.background = `linear-gradient(to top, ${mixture.rgb}, ${lightenColor(mixture.rgb, 20)})`;
+                    resultLiquid.textContent = mixture.color.charAt(0).toUpperCase() + mixture.color.slice(1);
+                    resultLiquid.classList.add('animating');
+                    
+                    resultColor = mixture.color;
+                    
+                    // Check for achievements
+                    checkAchievements(mixture.color);
+                    
+                    // Check challenge completion
+                    if (gameMode === 'challenge' && currentChallenge === mixture.color) {
+                        playSound('success');
+                        challengesCompleted++;
+                        showTooltip('Excellent! Challenge completed!', 2000);
+                        
+                        if (challengesCompleted >= 3 && !achievements.challenge) {
+                            unlockAchievement('challenge');
+                        }
+                        
+                        setTimeout(() => {
+                            if (gameMode === 'challenge') {
+                                startNewChallenge();
+                            }
+                        }, 2000);
+                    }
+                    
+                    document.querySelectorAll('.beaker').forEach(beaker => {
+                        beaker.classList.remove('mixing');
+                    });
+                    
+                    setTimeout(() => {
+                        resultLiquid.classList.remove('animating');
+                    }, 1000);
+                }, 500);
+            } else {
+                showTooltip('These colors don\'t mix to create a secondary color!', 2000);
+            }
+        }
+
+        function checkAchievements(color) {
+            if (!achievements[color]) {
+                achievements[color] = true;
+                unlockAchievement(color);
+                
+                // Check if all colors discovered
+                if (achievements.purple && achievements.orange && achievements.green && !achievements.all) {
+                    setTimeout(() => {
+                        unlockAchievement('all');
+                    }, 500);
+                }
+            }
+        }
+
+        function unlockAchievement(type) {
+            achievements[type] = true;
+            const achievementEl = document.querySelector(`[data-achievement="${type}"]`);
+            achievementEl.classList.add('unlocked');
+            playSound('achievement');
+            
+            const messages = {
+                purple: 'Purple discovered! Red + Blue = Purple',
+                orange: 'Orange discovered! Red + Yellow = Orange',
+                green: 'Green discovered! Blue + Yellow = Green',
+                all: 'Color Master! All secondary colors discovered!',
+                challenge: 'Challenge Champion! 3 challenges completed!'
+            };
+            
+            showTooltip(messages[type], 3000);
+        }
+
+        // Mode switching
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                initAudio();
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                gameMode = e.target.dataset.mode;
+                const challengePanel = document.getElementById('challengePanel');
+                
+                if (gameMode === 'challenge') {
+                    challengePanel.classList.add('active');
+                    startNewChallenge();
+                } else {
+                    challengePanel.classList.remove('active');
+                }
+                
+                resetLab();
+            });
+        });
+
+        function startNewChallenge() {
+            const challenges = ['purple', 'orange', 'green'];
+            currentChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+            
+            const targetColorEl = document.getElementById('targetColor');
+            const targetNameEl = document.getElementById('targetName');
+            
+            targetColorEl.style.backgroundColor = colorRGB[currentChallenge];
+            targetNameEl.textContent = currentChallenge.charAt(0).toUpperCase() + currentChallenge.slice(1);
+            
+            resetLab();
+        }
+
+        // Reset button
+        document.getElementById('resetBtn').addEventListener('click', resetLab);
+
+        function resetLab() {
+            initAudio();
+            beaker1Color = null;
+            beaker2Color = null;
+            resultColor = null;
+            
+            document.getElementById('liquid1').style.height = '0';
+            document.getElementById('liquid2').style.height = '0';
+            document.getElementById('liquidResult').style.height = '0';
+            
+            document.getElementById('liquid1').textContent = '';
+            document.getElementById('liquid2').textContent = '';
+            document.getElementById('liquidResult').textContent = '';
+            
+            document.getElementById('mixBtn').disabled = true;
+        }
+
+        // Help button
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            initAudio();
+            showTooltip('Drag primary colors (Red, Blue, Yellow) to the beakers, then click Mix! Red+Blue=Purple, Red+Yellow=Orange, Blue+Yellow=Green', 5000);
+        });
+
+        function showTooltip(text, duration) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = text;
+            tooltip.classList.add('show');
+            
+            // Position tooltip
+            tooltip.style.left = '50%';
+            tooltip.style.top = '50%';
+            tooltip.style.transform = 'translate(-50%, -50%)';
+            
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, duration);
+        }
+
+        // Educational tooltips on hover
+        const educationalTips = {
+            '.color-source.red': 'Red is a primary color! It cannot be made by mixing other colors.',
+            '.color-source.blue': 'Blue is a primary color! It\'s one of the three base colors.',
+            '.color-source.yellow': 'Yellow is a primary color! Mix it with other primaries to create new colors.',
+            '.wheel-svg': 'The color wheel shows how primary colors mix to create secondary colors!'
+        };
+
+        Object.keys(educationalTips).forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+                let tipTimeout;
+                
+                el.addEventListener('mouseenter', (e) => {
+                    tipTimeout = setTimeout(() => {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.textContent = educationalTips[selector];
+                        tooltip.classList.add('show');
+                        
+                        const rect = e.target.getBoundingClientRect();
+                        tooltip.style.left = rect.left + rect.width / 2 + 'px';
+                        tooltip.style.top = rect.bottom + 10 + 'px';
+                        tooltip.style.transform = 'translateX(-50%)';
+                    }, 500);
+                });
+                
+                el.addEventListener('mouseleave', () => {
+                    clearTimeout(tipTimeout);
+                    document.getElementById('tooltip').classList.remove('show');
+                });
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                resetLab();
+            } else if (e.key === ' ' && !document.getElementById('mixBtn').disabled) {
+                e.preventDefault();
+                mixColors();
+            }
+        });
+
+        // Prevent context menu on long press
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

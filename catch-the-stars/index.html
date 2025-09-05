@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catch the Stars - Twin Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            overflow: hidden;
+            background: #0a0e27;
+            position: relative;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: none;
+            image-rendering: crisp-edges;
+        }
+
+        #gameUI {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ui-panel {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .score-display {
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .combo-display {
+            font-size: 18px;
+            color: #ffeb3b;
+            margin-top: 5px;
+            height: 25px;
+        }
+
+        .lives-display {
+            display: flex;
+            gap: 10px;
+            font-size: 24px;
+        }
+
+        .life-heart {
+            animation: heartbeat 1s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 100;
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.9), rgba(30, 144, 255, 0.9));
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #menu h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #ffeb3b, #ffc107);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-button {
+            background: linear-gradient(45deg, #ff6ec7, #c77dff);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-family: 'Comic Sans MS', cursive;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .menu-button:active {
+            transform: translateY(0);
+        }
+
+        #highScore {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #ffeb3b;
+        }
+
+        #powerupIndicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-size: 18px;
+            display: none;
+            z-index: 10;
+            border: 2px solid #ffeb3b;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+
+        #achievements {
+            position: absolute;
+            top: 50%;
+            right: -300px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px 0 0 10px;
+            color: white;
+            width: 300px;
+            transition: right 0.3s;
+            z-index: 50;
+        }
+
+        #achievements.show {
+            right: 0;
+        }
+
+        .achievement {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .achievement.unlocked {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid gold;
+        }
+
+        .achievement-icon {
+            font-size: 30px;
+            margin-right: 15px;
+        }
+
+        .achievement-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .achievement-info p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        #achievementPopup {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: linear-gradient(45deg, #ffd700, #ffed4b);
+            color: #333;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 200;
+            transition: transform 0.5s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #achievementPopup.show {
+            transform: translateX(-50%) scale(1);
+            animation: bounce 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            z-index: 5;
+        }
+
+        .mobile-controls {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .ui-panel {
+                padding: 8px 12px;
+            }
+
+            .score-display {
+                font-size: 20px;
+            }
+
+            .combo-display {
+                font-size: 16px;
+            }
+
+            #menu h1 {
+                font-size: 36px;
+            }
+
+            .menu-button {
+                font-size: 20px;
+                padding: 12px 30px;
+            }
+
+            .mobile-controls {
+                display: block;
+                margin-top: 10px;
+                font-size: 16px;
+                color: rgba(255, 255, 255, 0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="gameUI" style="display: none;">
+        <div class="ui-panel">
+            <div class="score-display">Score: <span id="score">0</span></div>
+            <div class="combo-display" id="combo"></div>
+        </div>
+        <div class="ui-panel lives-display" id="lives"></div>
+    </div>
+
+    <div id="powerupIndicator"></div>
+
+    <div id="menu">
+        <h1>⭐ Catch the Stars ⭐</h1>
+        <div id="highScore">High Score: 0</div>
+        <button class="menu-button" onclick="startGame()">Play</button>
+        <button class="menu-button" onclick="toggleAchievements()">Achievements</button>
+        <div class="mobile-controls">Touch or tap to move!</div>
+    </div>
+
+    <div id="achievements">
+        <h2>🏆 Achievements</h2>
+        <div id="achievementList"></div>
+    </div>
+
+    <div id="achievementPopup"></div>
+
+    <div id="instructions" style="display: none;">
+        Use arrow keys, mouse, or touch to move
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game variables
+        let gameRunning = false;
+        let score = 0;
+        let highScore = localStorage.getItem('starCatcherHighScore') || 0;
+        let lives = 3;
+        let combo = 0;
+        let maxCombo = 0;
+        let gameSpeed = 1;
+        let frame = 0;
+        
+        // Player
+        const player = {
+            x: 0,
+            y: 0,
+            width: 60,
+            height: 80,
+            speed: 8,
+            targetX: 0,
+            color: '#ff6ec7',
+            trail: []
+        };
+        
+        // Game objects arrays
+        let stars = [];
+        let particles = [];
+        let powerups = [];
+        let obstacles = [];
+        let backgroundStars = [];
+        
+        // Powerup states
+        const powerupStates = {
+            magnet: { active: false, duration: 0, strength: 200 },
+            multiplier: { active: false, duration: 0, value: 2 },
+            freeze: { active: false, duration: 0 },
+            shield: { active: false, duration: 0 }
+        };
+        
+        // Star types
+        const starTypes = {
+            gold: { points: 10, color: '#ffd700', speed: 2, size: 25 },
+            silver: { points: 5, color: '#c0c0c0', speed: 2.5, size: 20 },
+            shooting: { points: 25, color: '#ff69b4', speed: 5, size: 30, rare: true },
+            rainbow: { points: 50, color: 'rainbow', speed: 3, size: 35, rare: true }
+        };
+        
+        // Powerup types
+        const powerupTypes = {
+            magnet: { icon: '🧲', color: '#ff0000', duration: 300 },
+            multiplier: { icon: '✖️', color: '#ffeb3b', duration: 400 },
+            freeze: { icon: '❄️', color: '#00bfff', duration: 200 },
+            shield: { icon: '🛡️', color: '#4caf50', duration: 350 }
+        };
+        
+        // Achievements
+        const achievements = [
+            { id: 'first_star', name: 'First Light', desc: 'Catch your first star', icon: '⭐', condition: () => score > 0 },
+            { id: 'combo_10', name: 'Combo Master', desc: 'Get a 10x combo', icon: '🔥', condition: () => maxCombo >= 10 },
+            { id: 'score_500', name: 'Star Collector', desc: 'Score 500 points', icon: '💫', condition: () => score >= 500 },
+            { id: 'score_1000', name: 'Stellar Champion', desc: 'Score 1000 points', icon: '🌟', condition: () => score >= 1000 },
+            { id: 'no_damage', name: 'Untouchable', desc: 'Score 300 without losing a life', icon: '💖', condition: () => score >= 300 && lives === 3 },
+            { id: 'powerup_master', name: 'Power Player', desc: 'Use all 4 powerups in one game', icon: '💪', condition: () => Object.values(powerupsUsed).every(v => v) },
+            { id: 'speed_demon', name: 'Speed Demon', desc: 'Survive speed level 5', icon: '⚡', condition: () => gameSpeed >= 5 },
+            { id: 'rainbow_catch', name: 'Rainbow Hunter', desc: 'Catch a rainbow star', icon: '🌈', condition: () => rainbowCaught }
+        ];
+        
+        let unlockedAchievements = JSON.parse(localStorage.getItem('starCatcherAchievements')) || [];
+        let powerupsUsed = { magnet: false, multiplier: false, freeze: false, shield: false };
+        let rainbowCaught = false;
+        
+        // Input handling
+        let keys = {};
+        let mouseX = 0;
+        let touchX = null;
+        
+        // Initialize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 120;
+            player.targetX = player.x;
+        }
+        
+        // Create background stars
+        function createBackgroundStars() {
+            backgroundStars = [];
+            for (let i = 0; i < 100; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.5 + 0.1,
+                    twinkle: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        
+        // Update background
+        function updateBackground() {
+            backgroundStars.forEach(star => {
+                star.y += star.speed * (powerupStates.freeze.active ? 0.1 : 1);
+                star.twinkle += 0.05;
+                
+                if (star.y > canvas.height) {
+                    star.y = -10;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+        }
+        
+        // Draw background
+        function drawBackground() {
+            // Create gradient sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0a0e27');
+            gradient.addColorStop(0.5, '#1a1f3a');
+            gradient.addColorStop(1, '#2a2f4a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw twinkling stars
+            backgroundStars.forEach(star => {
+                const opacity = Math.sin(star.twinkle) * 0.5 + 0.5;
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw moon
+            ctx.fillStyle = 'rgba(255, 255, 224, 0.8)';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 100, 100, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 85, 95, 35, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Create star
+        function createStar() {
+            const types = Object.keys(starTypes);
+            let type = types[Math.floor(Math.random() * types.length)];
+            
+            // Make rare stars less frequent
+            if (starTypes[type].rare && Math.random() > 0.1) {
+                type = Math.random() > 0.5 ? 'gold' : 'silver';
+            }
+            
+            const star = {
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -50,
+                type: type,
+                ...starTypes[type],
+                rotation: 0,
+                collected: false,
+                trail: []
+            };
+            
+            stars.push(star);
+        }
+        
+        // Create powerup
+        function createPowerup() {
+            if (Math.random() > 0.02) return; // 2% chance per frame
+            
+            const types = Object.keys(powerupTypes);
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            powerups.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -50,
+                type: type,
+                ...powerupTypes[type],
+                speed: 2,
+                rotation: 0
+            });
+        }
+        
+        // Create obstacle
+        function createObstacle() {
+            if (Math.random() > 0.01) return; // 1% chance per frame
+            
+            const types = [
+                { icon: '☁️', damage: 1, size: 40 },
+                { icon: '☄️', damage: 1, size: 35 }
+            ];
+            
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            obstacles.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -50,
+                ...type,
+                speed: 3 + Math.random() * 2,
+                rotation: 0
+            });
+        }
+        
+        // Create particle effect
+        function createParticles(x, y, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 5 + 2,
+                    color: color,
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.02
+                });
+            }
+        }
+        
+        // Update player
+        function updatePlayer() {
+            // Keyboard input
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.targetX -= player.speed;
+            }
+            if (keys['ArrowRight'] || keys['d']) {
+                player.targetX += player.speed;
+            }
+            
+            // Mouse/touch input
+            if (mouseX !== 0) {
+                player.targetX = mouseX;
+            }
+            if (touchX !== null) {
+                player.targetX = touchX;
+            }
+            
+            // Smooth movement
+            const dx = player.targetX - player.x;
+            player.x += dx * 0.15;
+            
+            // Boundaries
+            player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+            player.targetX = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.targetX));
+            
+            // Update trail
+            player.trail.push({ x: player.x, y: player.y, life: 1 });
+            player.trail = player.trail.filter(t => {
+                t.life -= 0.05;
+                return t.life > 0;
+            });
+        }
+        
+        // Draw player
+        function drawPlayer() {
+            // Draw trail
+            player.trail.forEach((t, i) => {
+                ctx.fillStyle = `rgba(255, 110, 199, ${t.life * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(t.x, t.y + 40, (player.trail.length - i) * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw player character (wizard/fairy)
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            
+            // Body
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 25, 35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cape/Wings
+            ctx.fillStyle = 'rgba(138, 43, 226, 0.7)';
+            const wingOffset = Math.sin(frame * 0.1) * 5;
+            ctx.beginPath();
+            ctx.moveTo(-25, -10);
+            ctx.quadraticCurveTo(-40 - wingOffset, 0, -30, 30);
+            ctx.lineTo(0, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(25, -10);
+            ctx.quadraticCurveTo(40 + wingOffset, 0, 30, 30);
+            ctx.lineTo(0, 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Face
+            ctx.fillStyle = '#ffdbac';
+            ctx.beginPath();
+            ctx.arc(0, -15, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Hat
+            ctx.fillStyle = '#4a148c';
+            ctx.beginPath();
+            ctx.moveTo(-15, -25);
+            ctx.lineTo(0, -45);
+            ctx.lineTo(15, -25);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Star on hat
+            drawStar(ctx, 0, -35, 5, '#ffd700');
+            
+            // Shield effect
+            if (powerupStates.shield.active) {
+                ctx.strokeStyle = 'rgba(76, 175, 80, 0.5)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, 50 + Math.sin(frame * 0.1) * 5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+        
+        // Draw star shape
+        function drawStar(ctx, x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+                const outerX = x + Math.cos(angle) * size;
+                const outerY = y + Math.sin(angle) * size;
+                
+                if (i === 0) {
+                    ctx.moveTo(outerX, outerY);
+                } else {
+                    ctx.lineTo(outerX, outerY);
+                }
+                
+                const innerAngle = angle + Math.PI / 5;
+                const innerX = x + Math.cos(innerAngle) * (size * 0.5);
+                const innerY = y + Math.sin(innerAngle) * (size * 0.5);
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Update stars
+        function updateStars() {
+            stars = stars.filter(star => {
+                // Apply freeze effect
+                const speedMod = powerupStates.freeze.active ? 0.2 : 1;
+                star.y += star.speed * gameSpeed * speedMod;
+                star.rotation += 0.05;
+                
+                // Update trail for shooting stars
+                if (star.type === 'shooting') {
+                    star.trail.push({ x: star.x, y: star.y });
+                    if (star.trail.length > 10) star.trail.shift();
+                }
+                
+                // Magnet effect
+                if (powerupStates.magnet.active) {
+                    const dx = player.x - star.x;
+                    const dy = player.y - star.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < powerupStates.magnet.strength) {
+                        star.x += (dx / dist) * 5;
+                        star.y += (dy / dist) * 5;
+                    }
+                }
+                
+                // Check collision with player
+                const dx = star.x - player.x;
+                const dy = star.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < star.size + 30 && !star.collected) {
+                    star.collected = true;
+                    collectStar(star);
+                    return false;
+                }
+                
+                return star.y < canvas.height + 50;
+            });
+        }
+        
+        // Draw stars
+        function drawStars() {
+            stars.forEach(star => {
+                ctx.save();
+                ctx.translate(star.x, star.y);
+                ctx.rotate(star.rotation);
+                
+                // Draw trail for shooting stars
+                if (star.trail) {
+                    star.trail.forEach((point, i) => {
+                        ctx.fillStyle = `rgba(255, 105, 180, ${i / star.trail.length * 0.5})`;
+                        ctx.beginPath();
+                        ctx.arc(point.x - star.x, point.y - star.y, star.size * (i / star.trail.length), 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                }
+                
+                // Rainbow star effect
+                if (star.type === 'rainbow') {
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, star.size);
+                    const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+                    colors.forEach((color, i) => {
+                        gradient.addColorStop(i / colors.length, color);
+                    });
+                    star.color = gradient;
+                }
+                
+                // Glow effect
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = star.color;
+                
+                drawStar(ctx, 0, 0, star.size, star.color);
+                
+                // Inner glow
+                ctx.shadowBlur = 0;
+                drawStar(ctx, 0, 0, star.size * 0.5, 'rgba(255, 255, 255, 0.8)');
+                
+                ctx.restore();
+            });
+        }
+        
+        // Collect star
+        function collectStar(star) {
+            let points = star.points;
+            
+            if (powerupStates.multiplier.active) {
+                points *= powerupStates.multiplier.value;
+            }
+            
+            score += points;
+            combo++;
+            maxCombo = Math.max(maxCombo, combo);
+            
+            if (star.type === 'rainbow') {
+                rainbowCaught = true;
+            }
+            
+            createParticles(star.x, star.y, star.color, 30);
+            
+            // Play sound effect
+            playSound(440 + combo * 20, 0.1);
+            
+            checkAchievements();
+        }
+        
+        // Update powerups
+        function updatePowerups() {
+            powerups = powerups.filter(powerup => {
+                const speedMod = powerupStates.freeze.active ? 0.2 : 1;
+                powerup.y += powerup.speed * speedMod;
+                powerup.rotation += 0.1;
+                
+                // Check collision with player
+                const dx = powerup.x - player.x;
+                const dy = powerup.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 40) {
+                    activatePowerup(powerup.type);
+                    return false;
+                }
+                
+                return powerup.y < canvas.height + 50;
+            });
+            
+            // Update powerup durations
+            Object.keys(powerupStates).forEach(key => {
+                if (powerupStates[key].active) {
+                    powerupStates[key].duration--;
+                    if (powerupStates[key].duration <= 0) {
+                        powerupStates[key].active = false;
+                        updatePowerupIndicator();
+                    }
+                }
+            });
+        }
+        
+        // Draw powerups
+        function drawPowerups() {
+            powerups.forEach(powerup => {
+                ctx.save();
+                ctx.translate(powerup.x, powerup.y);
+                ctx.rotate(powerup.rotation);
+                
+                // Glowing circle background
+                ctx.fillStyle = powerup.color;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = powerup.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, 25, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Icon
+                ctx.shadowBlur = 0;
+                ctx.font = '25px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(powerup.icon, 0, 0);
+                
+                ctx.restore();
+            });
+        }
+        
+        // Activate powerup
+        function activatePowerup(type) {
+            const state = powerupStates[type];
+            const powerup = powerupTypes[type];
+            
+            state.active = true;
+            state.duration = powerup.duration;
+            
+            powerupsUsed[type] = true;
+            
+            createParticles(player.x, player.y, powerup.color, 40);
+            playSound(600, 0.2);
+            
+            updatePowerupIndicator();
+        }
+        
+        // Update powerup indicator
+        function updatePowerupIndicator() {
+            const indicator = document.getElementById('powerupIndicator');
+            const activePowerups = [];
+            
+            if (powerupStates.magnet.active) activePowerups.push('🧲 Magnet');
+            if (powerupStates.multiplier.active) activePowerups.push('✖️ 2x Points');
+            if (powerupStates.freeze.active) activePowerups.push('❄️ Time Freeze');
+            if (powerupStates.shield.active) activePowerups.push('🛡️ Shield');
+            
+            if (activePowerups.length > 0) {
+                indicator.textContent = activePowerups.join(' | ');
+                indicator.style.display = 'block';
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+        
+        // Update obstacles
+        function updateObstacles() {
+            obstacles = obstacles.filter(obstacle => {
+                const speedMod = powerupStates.freeze.active ? 0.2 : 1;
+                obstacle.y += obstacle.speed * gameSpeed * speedMod;
+                obstacle.rotation += 0.02;
+                
+                // Check collision with player
+                const dx = obstacle.x - player.x;
+                const dy = obstacle.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < obstacle.size + 30) {
+                    if (!powerupStates.shield.active) {
+                        takeDamage(obstacle.damage);
+                        createParticles(obstacle.x, obstacle.y, '#ff0000', 20);
+                    } else {
+                        createParticles(obstacle.x, obstacle.y, '#4caf50', 20);
+                    }
+                    return false;
+                }
+                
+                return obstacle.y < canvas.height + 50;
+            });
+        }
+        
+        // Draw obstacles
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                ctx.save();
+                ctx.translate(obstacle.x, obstacle.y);
+                ctx.rotate(obstacle.rotation);
+                
+                ctx.font = `${obstacle.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(obstacle.icon, 0, 0);
+                
+                ctx.restore();
+            });
+        }
+        
+        // Update particles
+        function updateParticles() {
+            particles = particles.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.2; // Gravity
+                particle.life -= particle.decay;
+                particle.size *= 0.98;
+                
+                return particle.life > 0 && particle.size > 0.5;
+            });
+        }
+        
+        // Draw particles
+        function drawParticles() {
+            particles.forEach(particle => {
+                ctx.fillStyle = typeof particle.color === 'string' ? 
+                    particle.color.replace(')', `, ${particle.life})`) :
+                    `rgba(255, 255, 255, ${particle.life})`;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        // Take damage
+        function takeDamage(damage) {
+            lives -= damage;
+            combo = 0;
+            
+            playSound(200, 0.3);
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+            
+            updateLivesDisplay();
+        }
+        
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            
+            const comboElement = document.getElementById('combo');
+            if (combo > 1) {
+                comboElement.textContent = `Combo x${combo}!`;
+                comboElement.style.color = combo > 5 ? '#ff69b4' : '#ffeb3b';
+            } else {
+                comboElement.textContent = '';
+            }
+        }
+        
+        // Update lives display
+        function updateLivesDisplay() {
+            const livesContainer = document.getElementById('lives');
+            livesContainer.innerHTML = '';
+            
+            for (let i = 0; i < lives; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'life-heart';
+                heart.textContent = '❤️';
+                livesContainer.appendChild(heart);
+            }
+        }
+        
+        // Check achievements
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (!unlockedAchievements.includes(achievement.id) && achievement.condition()) {
+                    unlockAchievement(achievement);
+                }
+            });
+        }
+        
+        // Unlock achievement
+        function unlockAchievement(achievement) {
+            unlockedAchievements.push(achievement.id);
+            localStorage.setItem('starCatcherAchievements', JSON.stringify(unlockedAchievements));
+            
+            const popup = document.getElementById('achievementPopup');
+            popup.innerHTML = `🏆 ${achievement.name}<br><small>${achievement.desc}</small>`;
+            popup.classList.add('show');
+            
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+            
+            playSound(800, 0.3);
+            updateAchievementsList();
+        }
+        
+        // Update achievements list
+        function updateAchievementsList() {
+            const list = document.getElementById('achievementList');
+            list.innerHTML = '';
+            
+            achievements.forEach(achievement => {
+                const div = document.createElement('div');
+                div.className = 'achievement';
+                if (unlockedAchievements.includes(achievement.id)) {
+                    div.classList.add('unlocked');
+                }
+                
+                div.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <h3>${achievement.name}</h3>
+                        <p>${achievement.desc}</p>
+                    </div>
+                `;
+                
+                list.appendChild(div);
+            });
+        }
+        
+        // Play sound
+        function playSound(frequency, duration) {
+            if (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') return;
+            
+            const AudioCtx = AudioContext || webkitAudioContext;
+            const audioContext = new AudioCtx();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            frame++;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw everything
+            updateBackground();
+            drawBackground();
+            
+            updatePlayer();
+            updateStars();
+            updatePowerups();
+            updateObstacles();
+            updateParticles();
+            
+            drawStars();
+            drawPowerups();
+            drawObstacles();
+            drawParticles();
+            drawPlayer();
+            
+            // Spawn new objects
+            if (frame % Math.max(30 - gameSpeed * 2, 10) === 0) {
+                createStar();
+            }
+            createPowerup();
+            createObstacle();
+            
+            // Increase difficulty
+            if (frame % 600 === 0) {
+                gameSpeed = Math.min(gameSpeed + 0.5, 8);
+            }
+            
+            // Missed star penalty
+            stars.forEach(star => {
+                if (star.y > canvas.height + 50 && !star.collected) {
+                    combo = 0;
+                }
+            });
+            
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start game
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            combo = 0;
+            maxCombo = 0;
+            gameSpeed = 1;
+            frame = 0;
+            stars = [];
+            particles = [];
+            powerups = [];
+            obstacles = [];
+            powerupsUsed = { magnet: false, multiplier: false, freeze: false, shield: false };
+            rainbowCaught = false;
+            
+            Object.keys(powerupStates).forEach(key => {
+                powerupStates[key].active = false;
+                powerupStates[key].duration = 0;
+            });
+            
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'flex';
+            document.getElementById('instructions').style.display = 'block';
+            document.getElementById('achievements').classList.remove('show');
+            
+            resizeCanvas();
+            createBackgroundStars();
+            updateLivesDisplay();
+            updatePowerupIndicator();
+            
+            setTimeout(() => {
+                document.getElementById('instructions').style.display = 'none';
+            }, 3000);
+            
+            gameLoop();
+        }
+        
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('starCatcherHighScore', highScore);
+            }
+            
+            checkAchievements();
+            
+            setTimeout(() => {
+                document.getElementById('menu').style.display = 'block';
+                document.getElementById('gameUI').style.display = 'none';
+                document.getElementById('highScore').textContent = `High Score: ${highScore}`;
+                document.getElementById('powerupIndicator').style.display = 'none';
+            }, 1000);
+        }
+        
+        // Toggle achievements
+        function toggleAchievements() {
+            const panel = document.getElementById('achievements');
+            panel.classList.toggle('show');
+            updateAchievementsList();
+        }
+        
+        // Input event listeners
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+        });
+        
+        window.addEventListener('keyup', e => {
+            keys[e.key] = false;
+        });
+        
+        canvas.addEventListener('mousemove', e => {
+            if (gameRunning) {
+                mouseX = e.clientX;
+            }
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            mouseX = 0;
+        });
+        
+        canvas.addEventListener('touchstart', e => {
+            if (gameRunning) {
+                e.preventDefault();
+                touchX = e.touches[0].clientX;
+            }
+        });
+        
+        canvas.addEventListener('touchmove', e => {
+            if (gameRunning) {
+                e.preventDefault();
+                touchX = e.touches[0].clientX;
+            }
+        });
+        
+        canvas.addEventListener('touchend', e => {
+            if (gameRunning) {
+                e.preventDefault();
+                touchX = null;
+            }
+        });
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Initialize
+        resizeCanvas();
+        document.getElementById('highScore').textContent = `High Score: ${highScore}`;
+        updateAchievementsList();
+    </script>
+</body>
+</html>

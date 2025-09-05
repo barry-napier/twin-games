@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Piano - Twin Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .mode-btn:hover:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            transform: scale(1.05);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .volume-slider {
+            width: 100px;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #764ba2;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .sound-toggle {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sound-toggle.muted {
+            background: #999;
+        }
+
+        .game-area {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .status-display {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .piano-container {
+            background: linear-gradient(to bottom, #8b6914, #654321);
+            padding: 30px 20px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .piano-keys {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .piano-key {
+            width: 80px;
+            height: 200px;
+            background: linear-gradient(to bottom, #fff, #f0f0f0);
+            border: 2px solid #333;
+            border-radius: 0 0 10px 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 20px;
+            position: relative;
+            transition: all 0.1s;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .piano-key:hover {
+            background: linear-gradient(to bottom, #f9f9f9, #e0e0e0);
+        }
+
+        .piano-key.active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(to bottom, #ffd93d, #ff6b6b);
+        }
+
+        .piano-key.highlight {
+            animation: pulse 0.5s ease-in-out;
+            background: linear-gradient(to bottom, #6bcf7f, #4ade80);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animal-emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s;
+        }
+
+        .piano-key.active .animal-emoji {
+            animation: dance 0.5s ease-in-out;
+        }
+
+        @keyframes dance {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-15deg) scale(1.1); }
+            75% { transform: rotate(15deg) scale(1.1); }
+        }
+
+        .animal-name {
+            font-size: 0.9em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .key-label {
+            position: absolute;
+            top: 10px;
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .dancing-animals {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .dancing-animal {
+            position: absolute;
+            font-size: 2em;
+            animation: float 3s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        .dancing-animal.show {
+            opacity: 1;
+            animation: float 3s ease-in-out infinite, appear 0.5s ease-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes appear {
+            0% { transform: scale(0) rotate(0deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .record-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .record-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .record-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .record-btn.recording {
+            background: #ff3333;
+            animation: recordPulse 1s infinite;
+        }
+
+        @keyframes recordPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
+        }
+
+        .record-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .score-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 2em;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            display: none;
+        }
+
+        .score-display.show {
+            display: block;
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            position: absolute;
+            animation: confettiFall 3s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .song-selection {
+            display: none;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .song-selection.show {
+            display: flex;
+        }
+
+        .song-btn {
+            padding: 8px 16px;
+            background: #4ade80;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .song-btn:hover {
+            background: #22c55e;
+            transform: translateY(-2px);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .piano-key {
+                width: 60px;
+                height: 150px;
+            }
+
+            .animal-emoji {
+                font-size: 2em;
+            }
+
+            .mode-btn {
+                padding: 10px 18px;
+                font-size: 0.95em;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .piano-key {
+                width: 50px;
+                height: 120px;
+            }
+
+            .animal-emoji {
+                font-size: 1.5em;
+            }
+
+            .animal-name {
+                font-size: 0.7em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎹 Animal Piano 🐾</h1>
+        <div class="controls">
+            <button class="mode-btn active" data-mode="freeplay">🎵 Free Play</button>
+            <button class="mode-btn" data-mode="follow">🎯 Follow Me</button>
+            <button class="mode-btn" data-mode="orchestra">🎭 Orchestra</button>
+            <button class="mode-btn" data-mode="learn">📚 Learn Songs</button>
+            
+            <div class="control-group">
+                <button class="sound-toggle" id="soundToggle">🔊</button>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+            </div>
+        </div>
+        
+        <div class="song-selection" id="songSelection">
+            <button class="song-btn" data-song="oldMacDonald">Old MacDonald</button>
+            <button class="song-btn" data-song="mary">Mary Had a Little Lamb</button>
+            <button class="song-btn" data-song="bingo">B-I-N-G-O</button>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="status-display" id="statusDisplay">
+            🎵 Welcome! Press any key to hear animal sounds! 🎵
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="piano-container">
+            <div class="piano-keys" id="pianoKeys"></div>
+        </div>
+
+        <div class="record-controls">
+            <button class="record-btn" id="recordBtn">🔴 Record</button>
+            <button class="record-btn" id="playbackBtn" disabled>▶️ Play Recording</button>
+            <button class="record-btn" id="clearBtn">🗑️ Clear</button>
+        </div>
+    </div>
+
+    <div class="dancing-animals" id="dancingAnimals"></div>
+    <div class="score-display" id="scoreDisplay"></div>
+
+    <script>
+        class AnimalPiano {
+            constructor() {
+                this.audioContext = null;
+                this.volume = 0.7;
+                this.isMuted = false;
+                this.currentMode = 'freeplay';
+                this.recording = [];
+                this.isRecording = false;
+                this.recordStartTime = 0;
+                this.followSequence = [];
+                this.playerSequence = [];
+                this.followLevel = 1;
+                this.isPlayingSequence = false;
+                this.score = 0;
+                this.currentSongIndex = 0;
+                this.isLearningSong = false;
+                
+                this.animals = [
+                    { emoji: '🐶', name: 'Dog', sound: 'woof', key: 'Q' },
+                    { emoji: '🐱', name: 'Cat', sound: 'meow', key: 'W' },
+                    { emoji: '🐮', name: 'Cow', sound: 'moo', key: 'E' },
+                    { emoji: '🐷', name: 'Pig', sound: 'oink', key: 'R' },
+                    { emoji: '🐸', name: 'Frog', sound: 'ribbit', key: 'T' },
+                    { emoji: '🦁', name: 'Lion', sound: 'roar', key: 'Y' },
+                    { emoji: '🐔', name: 'Chicken', sound: 'cluck', key: 'U' },
+                    { emoji: '🦆', name: 'Duck', sound: 'quack', key: 'I' },
+                    { emoji: '🐴', name: 'Horse', sound: 'neigh', key: 'O' },
+                    { emoji: '🐑', name: 'Sheep', sound: 'baa', key: 'P' }
+                ];
+
+                this.songs = {
+                    oldMacDonald: {
+                        name: "Old MacDonald",
+                        notes: [0, 0, 0, 2, 4, 4, 2, 7, 7, 6, 6, 5, 5, 0],
+                        timing: [500, 500, 500, 500, 500, 500, 1000, 500, 500, 500, 500, 500, 500, 1000]
+                    },
+                    mary: {
+                        name: "Mary Had a Little Lamb",
+                        notes: [2, 1, 0, 1, 2, 2, 2, 1, 1, 1, 2, 4, 4],
+                        timing: [400, 400, 400, 400, 400, 400, 800, 400, 400, 800, 400, 400, 800]
+                    },
+                    bingo: {
+                        name: "B-I-N-G-O",
+                        notes: [0, 3, 5, 5, 2, 0, 3, 5, 5, 2, 1, 1, 1, 1, 2],
+                        timing: [400, 400, 400, 400, 800, 400, 400, 400, 400, 800, 400, 400, 400, 400, 800]
+                    }
+                };
+
+                this.keyMap = {};
+                this.init();
+            }
+
+            init() {
+                this.createPiano();
+                this.setupEventListeners();
+                this.initAudio();
+                this.createKeyMap();
+            }
+
+            initAudio() {
+                const initContext = () => {
+                    if (!this.audioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                };
+
+                document.addEventListener('click', initContext, { once: true });
+                document.addEventListener('touchstart', initContext, { once: true });
+            }
+
+            createKeyMap() {
+                this.animals.forEach((animal, index) => {
+                    this.keyMap[animal.key.toLowerCase()] = index;
+                });
+            }
+
+            createPiano() {
+                const pianoKeys = document.getElementById('pianoKeys');
+                
+                this.animals.forEach((animal, index) => {
+                    const key = document.createElement('div');
+                    key.className = 'piano-key';
+                    key.dataset.index = index;
+                    key.innerHTML = `
+                        <div class="key-label">${animal.key}</div>
+                        <div class="animal-emoji">${animal.emoji}</div>
+                        <div class="animal-name">${animal.name}</div>
+                    `;
+                    
+                    key.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        this.playAnimalSound(index);
+                    });
+                    
+                    key.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        this.playAnimalSound(index);
+                    });
+                    
+                    key.addEventListener('mouseup', () => this.releaseKey(index));
+                    key.addEventListener('mouseleave', () => this.releaseKey(index));
+                    key.addEventListener('touchend', () => this.releaseKey(index));
+                    
+                    pianoKeys.appendChild(key);
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    const key = e.key.toLowerCase();
+                    if (this.keyMap.hasOwnProperty(key) && !e.repeat) {
+                        this.playAnimalSound(this.keyMap[key]);
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    const key = e.key.toLowerCase();
+                    if (this.keyMap.hasOwnProperty(key)) {
+                        this.releaseKey(this.keyMap[key]);
+                    }
+                });
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentMode = btn.dataset.mode;
+                        this.handleModeChange();
+                    });
+                });
+
+                const volumeSlider = document.getElementById('volumeSlider');
+                volumeSlider.addEventListener('input', (e) => {
+                    this.volume = e.target.value / 100;
+                });
+
+                const soundToggle = document.getElementById('soundToggle');
+                soundToggle.addEventListener('click', () => {
+                    this.isMuted = !this.isMuted;
+                    soundToggle.textContent = this.isMuted ? '🔇' : '🔊';
+                    soundToggle.classList.toggle('muted');
+                });
+
+                document.getElementById('recordBtn').addEventListener('click', () => this.toggleRecording());
+                document.getElementById('playbackBtn').addEventListener('click', () => this.playRecording());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearRecording());
+
+                document.querySelectorAll('.song-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.playSong(btn.dataset.song);
+                    });
+                });
+            }
+
+            handleModeChange() {
+                const statusDisplay = document.getElementById('statusDisplay');
+                const songSelection = document.getElementById('songSelection');
+                const progressBar = document.getElementById('progressBar');
+                
+                songSelection.classList.remove('show');
+                progressBar.style.display = 'none';
+                
+                switch(this.currentMode) {
+                    case 'freeplay':
+                        statusDisplay.innerHTML = '🎵 Free Play Mode - Create your own melodies! 🎵';
+                        break;
+                    case 'follow':
+                        this.startFollowMode();
+                        break;
+                    case 'orchestra':
+                        statusDisplay.innerHTML = '🎭 Orchestra Mode - All animals play together! 🎭';
+                        this.playOrchestra();
+                        break;
+                    case 'learn':
+                        statusDisplay.innerHTML = '📚 Learn Songs - Choose a song to play along! 📚';
+                        songSelection.classList.add('show');
+                        break;
+                }
+            }
+
+            playAnimalSound(index) {
+                if (this.isMuted || !this.audioContext || this.isPlayingSequence) return;
+
+                const animal = this.animals[index];
+                const key = document.querySelectorAll('.piano-key')[index];
+                
+                key.classList.add('active');
+                this.createDancingAnimal(animal.emoji);
+                
+                this.synthesizeAnimalSound(animal.sound);
+                
+                if (this.isRecording) {
+                    this.recording.push({
+                        index: index,
+                        time: Date.now() - this.recordStartTime
+                    });
+                }
+                
+                if (this.currentMode === 'follow' && !this.isPlayingSequence) {
+                    this.playerSequence.push(index);
+                    this.checkFollowSequence();
+                }
+            }
+
+            synthesizeAnimalSound(soundType) {
+                if (!this.audioContext) return;
+
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                const filter = this.audioContext.createBiquadFilter();
+                
+                oscillator.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                const now = this.audioContext.currentTime;
+                
+                switch(soundType) {
+                    case 'woof':
+                        oscillator.frequency.setValueAtTime(200, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+                        oscillator.type = 'sawtooth';
+                        filter.frequency.setValueAtTime(1000, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.3);
+                        break;
+                    case 'meow':
+                        oscillator.frequency.setValueAtTime(800, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+                        oscillator.type = 'sine';
+                        filter.frequency.setValueAtTime(2000, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
+                        break;
+                    case 'moo':
+                        oscillator.frequency.setValueAtTime(100, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(80, now + 0.5);
+                        oscillator.type = 'square';
+                        filter.frequency.setValueAtTime(500, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.4, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.6);
+                        break;
+                    case 'oink':
+                        oscillator.frequency.setValueAtTime(300, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(250, now + 0.1);
+                        oscillator.type = 'triangle';
+                        filter.frequency.setValueAtTime(1500, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.15);
+                        break;
+                    case 'ribbit':
+                        oscillator.frequency.setValueAtTime(150, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                        oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+                        oscillator.type = 'sawtooth';
+                        filter.frequency.setValueAtTime(800, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.12);
+                        break;
+                    case 'roar':
+                        oscillator.frequency.setValueAtTime(80, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+                        oscillator.type = 'sawtooth';
+                        filter.frequency.setValueAtTime(400, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.4, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.5);
+                        break;
+                    case 'cluck':
+                        oscillator.type = 'square';
+                        filter.frequency.setValueAtTime(2000, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        for(let i = 0; i < 3; i++) {
+                            oscillator.frequency.setValueAtTime(400, now + i * 0.1);
+                            oscillator.frequency.setValueAtTime(300, now + i * 0.1 + 0.05);
+                        }
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
+                        break;
+                    case 'quack':
+                        oscillator.frequency.setValueAtTime(250, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+                        oscillator.type = 'square';
+                        filter.frequency.setValueAtTime(1200, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.25);
+                        break;
+                    case 'neigh':
+                        oscillator.frequency.setValueAtTime(400, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+                        oscillator.type = 'sawtooth';
+                        filter.frequency.setValueAtTime(1500, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.4);
+                        break;
+                    case 'baa':
+                        oscillator.frequency.setValueAtTime(300, now);
+                        oscillator.frequency.exponentialRampToValueAtTime(250, now + 0.2);
+                        oscillator.type = 'triangle';
+                        filter.frequency.setValueAtTime(1000, now);
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(this.volume * 0.3, now + 0.01);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.25);
+                        break;
+                }
+            }
+
+            releaseKey(index) {
+                const key = document.querySelectorAll('.piano-key')[index];
+                key.classList.remove('active');
+            }
+
+            createDancingAnimal(emoji) {
+                const container = document.getElementById('dancingAnimals');
+                const animal = document.createElement('div');
+                animal.className = 'dancing-animal';
+                animal.textContent = emoji;
+                animal.style.left = Math.random() * 80 + 10 + '%';
+                animal.style.top = Math.random() * 80 + 10 + '%';
+                container.appendChild(animal);
+                
+                setTimeout(() => animal.classList.add('show'), 10);
+                setTimeout(() => animal.remove(), 3000);
+            }
+
+            toggleRecording() {
+                const recordBtn = document.getElementById('recordBtn');
+                const playbackBtn = document.getElementById('playbackBtn');
+                
+                if (this.isRecording) {
+                    this.isRecording = false;
+                    recordBtn.classList.remove('recording');
+                    recordBtn.textContent = '🔴 Record';
+                    if (this.recording.length > 0) {
+                        playbackBtn.disabled = false;
+                    }
+                    document.getElementById('statusDisplay').innerHTML = '✅ Recording saved! Press Play to hear it.';
+                } else {
+                    this.recording = [];
+                    this.isRecording = true;
+                    this.recordStartTime = Date.now();
+                    recordBtn.classList.add('recording');
+                    recordBtn.textContent = '⏹️ Stop';
+                    document.getElementById('statusDisplay').innerHTML = '🔴 Recording... Play some notes!';
+                }
+            }
+
+            playRecording() {
+                if (this.recording.length === 0) {
+                    document.getElementById('statusDisplay').innerHTML = '❌ No recording to play!';
+                    return;
+                }
+                
+                const playbackBtn = document.getElementById('playbackBtn');
+                playbackBtn.disabled = true;
+                playbackBtn.textContent = '⏸️ Playing...';
+                
+                document.getElementById('statusDisplay').innerHTML = '▶️ Playing your recording...';
+                
+                this.recording.forEach(note => {
+                    setTimeout(() => {
+                        this.playAnimalSound(note.index);
+                        setTimeout(() => this.releaseKey(note.index), 200);
+                    }, note.time);
+                });
+
+                const maxTime = Math.max(...this.recording.map(n => n.time)) + 1000;
+                setTimeout(() => {
+                    playbackBtn.disabled = false;
+                    playbackBtn.textContent = '▶️ Play Recording';
+                }, maxTime);
+            }
+
+            clearRecording() {
+                this.recording = [];
+                document.getElementById('playbackBtn').disabled = true;
+                document.getElementById('statusDisplay').innerHTML = '🗑️ Recording cleared!';
+            }
+
+            startFollowMode() {
+                this.followLevel = 1;
+                this.score = 0;
+                this.nextFollowRound();
+            }
+
+            nextFollowRound() {
+                document.getElementById('statusDisplay').innerHTML = `🎯 Level ${this.followLevel} - Watch and repeat!`;
+                this.followSequence = [];
+                this.playerSequence = [];
+                
+                for (let i = 0; i < Math.min(this.followLevel + 2, 8); i++) {
+                    this.followSequence.push(Math.floor(Math.random() * this.animals.length));
+                }
+                
+                setTimeout(() => this.playFollowSequence(), 1000);
+            }
+
+            playFollowSequence() {
+                this.isPlayingSequence = true;
+                let delay = 0;
+                
+                this.followSequence.forEach((index, i) => {
+                    setTimeout(() => {
+                        this.playAnimalSound(index);
+                        const key = document.querySelectorAll('.piano-key')[index];
+                        key.classList.add('highlight');
+                        setTimeout(() => {
+                            this.releaseKey(index);
+                            key.classList.remove('highlight');
+                        }, 400);
+                        
+                        if (i === this.followSequence.length - 1) {
+                            this.isPlayingSequence = false;
+                            setTimeout(() => {
+                                document.getElementById('statusDisplay').innerHTML = '🎹 Your turn! Repeat the sequence.';
+                            }, 500);
+                        }
+                    }, delay);
+                    delay += 600;
+                });
+            }
+
+            checkFollowSequence() {
+                const currentIndex = this.playerSequence.length - 1;
+                
+                if (this.playerSequence[currentIndex] !== this.followSequence[currentIndex]) {
+                    document.getElementById('statusDisplay').innerHTML = '❌ Oops! Try again!';
+                    this.showScore();
+                    setTimeout(() => this.playFollowSequence(), 2000);
+                    this.playerSequence = [];
+                } else if (this.playerSequence.length === this.followSequence.length) {
+                    this.score += this.followLevel * 10;
+                    this.followLevel++;
+                    document.getElementById('statusDisplay').innerHTML = '✅ Perfect! Get ready for the next level!';
+                    this.createConfetti();
+                    setTimeout(() => this.nextFollowRound(), 2000);
+                }
+            }
+
+            playOrchestra() {
+                let delay = 0;
+                this.animals.forEach((animal, index) => {
+                    setTimeout(() => {
+                        this.playAnimalSound(index);
+                        setTimeout(() => this.releaseKey(index), 200);
+                    }, delay);
+                    delay += 200;
+                });
+                
+                setTimeout(() => {
+                    for (let i = 0; i < 8; i++) {
+                        setTimeout(() => {
+                            const randomIndex = Math.floor(Math.random() * this.animals.length);
+                            this.playAnimalSound(randomIndex);
+                            setTimeout(() => this.releaseKey(randomIndex), 200);
+                        }, i * 300);
+                    }
+                }, 2500);
+            }
+
+            playSong(songName) {
+                const song = this.songs[songName];
+                this.isLearningSong = true;
+                
+                document.getElementById('statusDisplay').innerHTML = `🎵 Playing: ${song.name} 🎵`;
+                document.getElementById('progressBar').style.display = 'block';
+                
+                let totalTime = song.timing.reduce((a, b) => a + b, 0);
+                let currentTime = 0;
+                let delay = 0;
+                
+                song.notes.forEach((note, i) => {
+                    setTimeout(() => {
+                        this.playAnimalSound(note);
+                        const key = document.querySelectorAll('.piano-key')[note];
+                        key.classList.add('highlight');
+                        setTimeout(() => {
+                            this.releaseKey(note);
+                            key.classList.remove('highlight');
+                        }, song.timing[i] - 50);
+                        
+                        currentTime += song.timing[i];
+                        document.getElementById('progressFill').style.width = (currentTime / totalTime) * 100 + '%';
+                        
+                        if (i === song.notes.length - 1) {
+                            setTimeout(() => {
+                                document.getElementById('progressBar').style.display = 'none';
+                                document.getElementById('statusDisplay').innerHTML = '🎵 Song complete! Try playing it yourself! 🎵';
+                                this.isLearningSong = false;
+                            }, song.timing[i]);
+                        }
+                    }, delay);
+                    delay += song.timing[i];
+                });
+            }
+
+            showScore() {
+                const scoreDisplay = document.getElementById('scoreDisplay');
+                scoreDisplay.textContent = `Score: ${this.score} 🌟`;
+                scoreDisplay.classList.add('show');
+                setTimeout(() => scoreDisplay.classList.remove('show'), 2000);
+            }
+
+            createConfetti() {
+                const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9'];
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }
+            }
+        }
+
+        const game = new AnimalPiano();
+    </script>
+</body>
+</html>
