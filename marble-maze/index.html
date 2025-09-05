@@ -110,21 +110,55 @@
       .speed-controls {
         display: none;
         background: var(--panel);
-        padding: 12px;
+        padding: 16px;
         border-radius: 14px;
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
         position: fixed;
         top: 80px;
         right: 20px;
-        width: 250px;
+        width: 280px;
         z-index: 99;
       }
       
       .speed-controls.show {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .speed-row {
         display: grid;
         grid-template-columns: auto 1fr auto;
         gap: 8px;
         align-items: center;
+      }
+      
+      .checkbox-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      
+      .button-row {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+      }
+      
+      .speed-controls button {
+        flex: 1;
+        padding: 8px 12px;
+        background: var(--accent);
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.12s ease;
+      }
+      
+      .speed-controls button:active {
+        transform: translateY(1px) scale(0.98);
       }
       
       [data-theme="finn"] .settings-toggle {
@@ -140,6 +174,20 @@
         background: rgba(10, 14, 39, 0.95);
         border: 1px solid rgba(0, 255, 255, 0.3);
         color: #00ffff;
+      }
+      
+      [data-theme="finn"] .speed-controls label {
+        color: #00ffff;
+      }
+      
+      [data-theme="finn"] .speed-controls button {
+        background: linear-gradient(135deg, #00ffff, #0080ff);
+        color: #0a0e27;
+        border: 1px solid #00ffff;
+      }
+      
+      [data-theme="sarah"] .speed-controls button {
+        background: linear-gradient(135deg, #ff69b4, #da70d6);
       }
       .controls .row {
         display: contents;
@@ -473,27 +521,28 @@
     <button class="settings-toggle" id="settingsToggle" title="Settings">⚙️</button>
     
     <div class="speed-controls" id="speedControls">
-      <label for="speed">Speed</label>
-      <input
-        id="speed"
-        type="range"
-        min="0.1"
-        max="2.0"
-        step="0.1"
-        value="0.5"
-      />
-      <div style="text-align: right"><span id="speedVal">0.5</span>x</div>
-    </div>
-    
-    <div class="controls" id="controls" style="display: none">
-      <div class="row">
+      <div class="speed-row">
+        <label for="speed">Speed</label>
+        <input
+          id="speed"
+          type="range"
+          min="0.1"
+          max="2.0"
+          step="0.1"
+          value="0.5"
+        />
+        <div><span id="speedVal">0.5</span>x</div>
+      </div>
+      
+      <div class="checkbox-row">
         <label><input type="checkbox" id="invertX" /> Invert X</label>
         <label><input type="checkbox" id="invertY" /> Invert Y</label>
-        <div class="split">
-          <label><input type="checkbox" id="showDebug" /> Debug</label>
-          <button id="newMazeBtn" title="Generate new maze">🎲 New Maze</button>
-          <button id="resetBtn" title="Reset marble">↻ Reset</button>
-        </div>
+        <label><input type="checkbox" id="showDebug" /> Debug</label>
+      </div>
+      
+      <div class="button-row">
+        <button id="newMazeBtn" title="Generate new maze">🎲 New Maze</button>
+        <button id="resetBtn" title="Reset marble">↻ Reset</button>
       </div>
     </div>
 
@@ -520,7 +569,6 @@
       const marble = document.getElementById("marble");
       const goal = document.getElementById("goal");
       const startBtn = document.getElementById("startBtn");
-      const controls = document.getElementById("controls");
       const invertXEl = document.getElementById("invertX");
       const invertYEl = document.getElementById("invertY");
       const speedEl = document.getElementById("speed");
@@ -1040,7 +1088,6 @@
 
       function startGame() {
         startBtn.style.display = "none";
-        controls.style.display = "grid";
         settingsToggle.style.display = "flex";
 
         // Generate the first maze
